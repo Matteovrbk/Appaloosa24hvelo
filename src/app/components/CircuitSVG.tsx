@@ -3,50 +3,94 @@ import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMap } from
 import type { LatLngExpression } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Tracé GPS réel du circuit autour du Grand Étang du Bois de la Cambre
-// Source : coordonnées OpenStreetMap de la route encerclant le lac
-// Sens antihoraire, ~2.2 km
+// Tracé GPS réel du circuit 24h Vélo du Bois de la Cambre
+// Source : calculitineraires.fr — 82 points, 2.61 km
 const CIRCUIT_COORDS: LatLngExpression[] = [
-  // Nord (départ/arrivée)
-  [50.81370, 4.36880],
-  // Nord-Est
-  [50.81360, 4.36940],
-  [50.81340, 4.36990],
-  [50.81310, 4.37040],
-  // Est (descente rive orientale)
-  [50.81270, 4.37080],
-  [50.81230, 4.37110],
-  [50.81190, 4.37130],
-  [50.81150, 4.37150],
-  [50.81100, 4.37140],
-  // Sud-Est
-  [50.81050, 4.37120],
-  [50.81010, 4.37080],
-  // Sud (pointe)
-  [50.80970, 4.37020],
-  [50.80940, 4.36950],
-  [50.80920, 4.36880],
-  [50.80930, 4.36810],
-  // Sud-Ouest
-  [50.80960, 4.36750],
-  [50.81000, 4.36700],
-  [50.81040, 4.36660],
-  // Ouest (remontée rive occidentale)
-  [50.81090, 4.36630],
-  [50.81140, 4.36610],
-  [50.81190, 4.36600],
-  [50.81240, 4.36610],
-  // Nord-Ouest
-  [50.81280, 4.36640],
-  [50.81310, 4.36680],
-  [50.81340, 4.36730],
-  [50.81360, 4.36790],
-  // Retour au départ
-  [50.81370, 4.36850],
-  [50.81370, 4.36880],
+  [50.80608, 4.38306],
+  [50.80638, 4.38280],
+  [50.80682, 4.38233],
+  [50.80695, 4.38214],
+  [50.80716, 4.38166],
+  [50.80721, 4.38135],
+  [50.80727, 4.38066],
+  [50.80733, 4.38048],
+  [50.80738, 4.38040],
+  [50.80735, 4.38024],
+  [50.80724, 4.37976],
+  [50.80683, 4.37877],
+  [50.80657, 4.37825],
+  [50.80651, 4.37808],
+  [50.80647, 4.37796],
+  [50.80633, 4.37803],
+  [50.80616, 4.37807],
+  [50.80595, 4.37801],
+  [50.80583, 4.37795],
+  [50.80543, 4.37758],
+  [50.80517, 4.37740],
+  [50.80497, 4.37732],
+  [50.80477, 4.37731],
+  [50.80460, 4.37733],
+  [50.80436, 4.37744],
+  [50.80406, 4.37766],
+  [50.80377, 4.37808],
+  [50.80361, 4.37841],
+  [50.80346, 4.37888],
+  [50.80341, 4.37910],
+  [50.80331, 4.37945],
+  [50.80324, 4.37958],
+  [50.80309, 4.37983],
+  [50.80303, 4.37987],
+  [50.80290, 4.37988],
+  [50.80273, 4.37988],
+  [50.80260, 4.37981],
+  [50.80217, 4.37949],
+  [50.80204, 4.37939],
+  [50.80181, 4.37928],
+  [50.80159, 4.37921],
+  [50.80135, 4.37918],
+  [50.80099, 4.37920],
+  [50.80064, 4.37929],
+  [50.80047, 4.37940],
+  [50.80032, 4.37954],
+  [50.79997, 4.37996],
+  [50.79979, 4.38035],
+  [50.79963, 4.38077],
+  [50.79927, 4.38210],
+  [50.79914, 4.38281],
+  [50.79912, 4.38301],
+  [50.79911, 4.38372],
+  [50.79912, 4.38418],
+  [50.79917, 4.38469],
+  [50.79929, 4.38536],
+  [50.79940, 4.38575],
+  [50.79963, 4.38633],
+  [50.79970, 4.38646],
+  [50.79985, 4.38669],
+  [50.79999, 4.38686],
+  [50.80021, 4.38708],
+  [50.80038, 4.38719],
+  [50.80053, 4.38724],
+  [50.80071, 4.38731],
+  [50.80087, 4.38731],
+  [50.80100, 4.38729],
+  [50.80113, 4.38722],
+  [50.80146, 4.38695],
+  [50.80193, 4.38645],
+  [50.80256, 4.38555],
+  [50.80318, 4.38467],
+  [50.80339, 4.38442],
+  [50.80354, 4.38431],
+  [50.80369, 4.38425],
+  [50.80398, 4.38419],
+  [50.80434, 4.38411],
+  [50.80484, 4.38391],
+  [50.80519, 4.38374],
+  [50.80552, 4.38351],
+  [50.80608, 4.38306],
 ];
 
-const MAP_CENTER: LatLngExpression = [50.8115, 4.3688];
+// Centre géographique du circuit
+const MAP_CENTER: LatLngExpression = [50.8032, 4.3823];
 
 function getPositionOnCircuit(progress: number): LatLngExpression {
   const p = ((progress % 1) + 1) % 1;
@@ -98,17 +142,17 @@ export function CircuitSVG({
   const pos1 = useMemo(() => getPositionOnCircuit(bike1Progress), [bike1Progress]);
   const pos2 = useMemo(() => getPositionOnCircuit(bike2Progress), [bike2Progress]);
 
-  // Ligne départ/arrivée (petit segment perpendiculaire au nord)
+  // Ligne départ/arrivée (petit segment perpendiculaire)
   const startFinish: LatLngExpression[] = [
-    [50.81380, 4.36870],
-    [50.81380, 4.36890],
+    [50.80620, 4.38296],
+    [50.80596, 4.38316],
   ];
 
   return (
     <div className="relative w-full" style={{ height: 280 }}>
       <MapContainer
         center={MAP_CENTER}
-        zoom={16}
+        zoom={15}
         zoomControl={false}
         attributionControl={false}
         className="w-full rounded"
@@ -160,7 +204,7 @@ export function CircuitSVG({
 
         {/* Marqueur départ/arrivée */}
         <CircleMarker
-          center={[50.81375, 4.36880]}
+          center={[50.80608, 4.38306]}
           radius={6}
           pathOptions={{
             fillColor: "#e11d48",
@@ -213,14 +257,14 @@ export function CircuitSVG({
         {/* Vélos inactifs au départ */}
         {!bike1Active && (
           <CircleMarker
-            center={[50.81375, 4.36870]}
+            center={[50.80605, 4.38300]}
             radius={5}
             pathOptions={{ fillColor: "#16a34a", color: "#333", weight: 1, fillOpacity: 0.3 }}
           />
         )}
         {!bike2Active && (
           <CircleMarker
-            center={[50.81375, 4.36890]}
+            center={[50.80611, 4.38312]}
             radius={5}
             pathOptions={{ fillColor: "#ea580c", color: "#333", weight: 1, fillOpacity: 0.3 }}
           />
@@ -229,7 +273,7 @@ export function CircuitSVG({
 
       {/* Overlay infos */}
       <div className="absolute bottom-2 left-2 z-[1000] bg-black/70 backdrop-blur-sm px-2 py-1 rounded text-[9px] font-['Roboto_Mono'] uppercase tracking-widest text-[#888]">
-        Bois de la Cambre &bull; ~2.2 km/tour
+        Bois de la Cambre &bull; 2.61 km/tour
       </div>
 
       <style>{`

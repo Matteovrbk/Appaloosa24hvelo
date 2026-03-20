@@ -26,7 +26,7 @@ export interface EventConfig {
   eventName: string;
   startTime: number; // timestamp ms
   durationMs: number; // 24h = 86400000
-  circuitLengthKm: number; // 2.2
+  circuitLengthKm: number; // 2.61
 }
 
 export interface LapFlag {
@@ -70,7 +70,7 @@ export const DEFAULT_EVENT_CONFIG: EventConfig = {
   eventName: "24H Vélo — Saint-Paul 51",
   startTime: Date.now(),
   durationMs: 86400000,
-  circuitLengthKm: 2.2,
+  circuitLengthKm: 2.61,
 };
 
 export const LAP_VALIDATION_THRESHOLDS = {

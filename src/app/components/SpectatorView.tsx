@@ -162,7 +162,7 @@ export function SpectatorView() {
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-[#e11d48]" />
             <span className="text-[11px] font-bold tracking-widest text-[#fff] uppercase">
-              Chronométrage Direct - 24H Vélo
+              24hSaintPaul — Chronométrage Direct
             </span>
           </div>
         </div>
@@ -187,7 +187,7 @@ export function SpectatorView() {
           <div className="flex items-center gap-3">
             <span className="text-[10px] text-[#666] uppercase tracking-widest">DIST: </span>
             <div className="font-['Roboto_Mono'] text-[#22c55e] text-sm">
-              {((state.bike1.totalLaps + state.bike2.totalLaps) * (state.eventConfig?.circuitLengthKm ?? 2.2)).toFixed(1)} km
+              {((state.bike1.totalLaps + state.bike2.totalLaps) * (state.eventConfig?.circuitLengthKm ?? 2.61)).toFixed(1)} km
             </div>
           </div>
           {remaining !== null && remaining > 0 && (
@@ -368,7 +368,7 @@ export function SpectatorView() {
               const remainingMs = Math.max(0, (state.eventConfig ? state.eventConfig.startTime + totalDuration - Date.now() : totalDuration - elapsedMs));
               const predictedRemainingLaps = Math.floor(remainingMs / 1000 / avgLapTime);
               const predictedTotalLaps = totalLaps + predictedRemainingLaps;
-              const predictedKm = (predictedTotalLaps * (state.eventConfig?.circuitLengthKm ?? 2.2)).toFixed(1);
+              const predictedKm = (predictedTotalLaps * (state.eventConfig?.circuitLengthKm ?? 2.61)).toFixed(1);
               return (
                 <div className="space-y-1">
                   <div className="flex justify-between">

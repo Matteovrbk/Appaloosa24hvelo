@@ -97,7 +97,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
   // Event‑setup form
   const [setupName, setSetupName] = useState(DEFAULT_EVENT_CONFIG.eventName);
   const [setupDuration, setSetupDuration] = useState("24");
-  const [setupCircuit, setSetupCircuit] = useState("2.2");
+  const [setupCircuit, setSetupCircuit] = useState("2.61");
 
 
   // Timer tick
@@ -162,7 +162,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
   const progress = state.eventConfig
     ? Math.min(1, (Date.now() - state.eventConfig.startTime) / state.eventConfig.durationMs)
     : 0;
-  const circuitKm = state.eventConfig?.circuitLengthKm ?? 2.2;
+  const circuitKm = state.eventConfig?.circuitLengthKm ?? 2.61;
   const totalLaps = state.bike1.totalLaps + state.bike2.totalLaps;
   const totalDistance = (totalLaps * circuitKm).toFixed(1);
 
@@ -480,7 +480,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
         eventName: setupName || DEFAULT_EVENT_CONFIG.eventName,
         startTime: Date.now(),
         durationMs: (parseFloat(setupDuration) || 24) * 3600000,
-        circuitLengthKm: parseFloat(setupCircuit) || 2.2,
+        circuitLengthKm: parseFloat(setupCircuit) || 2.61,
       },
       eventStartTime: Date.now(),
     }));
@@ -496,7 +496,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
         eventName: setupName || DEFAULT_EVENT_CONFIG.eventName,
         startTime: Date.now(),
         durationMs: (parseFloat(setupDuration) || 24) * 3600000,
-        circuitLengthKm: parseFloat(setupCircuit) || 2.2,
+        circuitLengthKm: parseFloat(setupCircuit) || 2.61,
       },
       eventStartTime: Date.now(),
     }));
