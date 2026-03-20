@@ -1,14 +1,26 @@
 import { Clock, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import type { LapRecord, Scout } from "./types";
+import { BIKE1_COLOR, BIKE2_COLOR } from "./types";
 
 interface LeaderboardProps {
   lapRecords: LapRecord[];
   scouts: Scout[];
 }
 
+type FilterMode = "all" | "bike1" | "bike2" | "Ungava" | "Argapura";
+
+const FILTERS: { key: FilterMode; label: string; color: string }[] = [
+  { key: "all",     label: "Tous",    color: "#888"       },
+  { key: "bike1",   label: "Vélo 1",  color: BIKE1_COLOR  },
+  { key: "bike2",   label: "Vélo 2",  color: BIKE2_COLOR  },
+  { key: "Ungava",  label: "Ungava",  color: "#3b82f6"    },
+  { key: "Argapura",label: "Argapura",color: "#ef4444"    },
+];
+
 export function Leaderboard({ lapRecords, scouts }: LeaderboardProps) {
   const [tab, setTab] = useState<"best" | "average">("best");
+  const [filter, setFilter] = useState<FilterMode>("all");
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -17,16 +29,19 @@ export function Leaderboard({ lapRecords, scouts }: LeaderboardProps) {
     return `${mins}:${secs.toString().padStart(2, "0")}.${ms}`;
   };
 
+  const filtered = lapRecords.filter((r) => {
+    if (filter === "bike1") return r.bikeId === 1;
+    if (filter === "bike2") return r.bikeId === 2;
+    if (filter === "Ungava" || filter === "Argapura") return r.troupe === filter;
+    return true;
+  });
+
   // Best lap times
-  const bestTimes = new Map<string, { time: number; name: string; troupe: string }>();
-  lapRecords.forEach((r) => {
+  const bestTimes = new Map<string, { time: number; name: string; bikeId: 1 | 2; troupe: string }>();
+  filtered.forEach((r) => {
     const existing = bestTimes.get(r.scoutId);
     if (!existing || r.lapTime < existing.time) {
-      bestTimes.set(r.scoutId, {
-        time: r.lapTime,
-        name: r.scoutName,
-        troupe: r.troupe,
-      });
+      bestTimes.set(r.scoutId, { time: r.lapTime, name: r.scoutName, bikeId: r.bikeId, troupe: r.troupe });
     }
   });
   const bestTimesArray = Array.from(bestTimes.entries())
@@ -34,18 +49,22 @@ export function Leaderboard({ lapRecords, scouts }: LeaderboardProps) {
     .sort((a, b) => a.time - b.time);
 
   // Average times
-  const avgMap = new Map<string, { total: number; count: number; name: string; troupe: string }>();
-  lapRecords.forEach((r) => {
+  const avgMap = new Map<string, { total: number; count: number; name: string; troupe: string; bike1: number; bike2: number }>();
+  filtered.forEach((r) => {
     const existing = avgMap.get(r.scoutId);
     if (existing) {
       existing.total += r.lapTime;
       existing.count += 1;
+      if (r.bikeId === 1) existing.bike1++;
+      else existing.bike2++;
     } else {
       avgMap.set(r.scoutId, {
         total: r.lapTime,
         count: 1,
         name: r.scoutName,
         troupe: r.troupe,
+        bike1: r.bikeId === 1 ? 1 : 0,
+        bike2: r.bikeId === 2 ? 1 : 0,
       });
     }
   });
@@ -56,18 +75,21 @@ export function Leaderboard({ lapRecords, scouts }: LeaderboardProps) {
       troupe: data.troupe,
       avg: data.total / data.count,
       laps: data.count,
+      mainBike: data.bike1 >= data.bike2 ? (1 as const) : (2 as const),
     }))
     .sort((a, b) => a.avg - b.avg);
 
+  const bikeLabel = (bikeId: 1 | 2) => `Vélo ${bikeId}`;
+  const bikeColor = (bikeId: 1 | 2) => (bikeId === 1 ? BIKE1_COLOR : BIKE2_COLOR);
+
   return (
     <div className="flex flex-col gap-3 font-['Inter']">
+      {/* Tabs */}
       <div className="flex gap-2">
         <button
           onClick={() => setTab("best")}
           className={`flex-1 px-3 py-1.5 flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-widest font-bold rounded transition-colors ${
-            tab === "best"
-              ? "bg-[#22c55e] text-black"
-              : "bg-[#222] text-[#888] hover:bg-[#333]"
+            tab === "best" ? "bg-[#22c55e] text-black" : "bg-[#222] text-[#888] hover:bg-[#333]"
           }`}
         >
           <Clock className="w-3 h-3" />
@@ -76,14 +98,30 @@ export function Leaderboard({ lapRecords, scouts }: LeaderboardProps) {
         <button
           onClick={() => setTab("average")}
           className={`flex-1 px-3 py-1.5 flex items-center justify-center gap-1.5 text-[10px] uppercase tracking-widest font-bold rounded transition-colors ${
-            tab === "average"
-              ? "bg-[#3b82f6] text-black"
-              : "bg-[#222] text-[#888] hover:bg-[#333]"
+            tab === "average" ? "bg-[#3b82f6] text-black" : "bg-[#222] text-[#888] hover:bg-[#333]"
           }`}
         >
           <TrendingUp className="w-3 h-3" />
           Temps Moyen
         </button>
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-1 flex-wrap">
+        {FILTERS.map((f) => (
+          <button
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`px-2 py-0.5 text-[9px] uppercase tracking-widest font-bold rounded border transition-colors ${
+              filter === f.key
+                ? "text-black border-transparent"
+                : "bg-transparent text-[#666] border-[#333] hover:border-[#555]"
+            }`}
+            style={filter === f.key ? { backgroundColor: f.color, borderColor: f.color } : {}}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
 
       <div className="bg-[#0a0a0a] border border-[#222] rounded overflow-hidden">
@@ -105,13 +143,11 @@ export function Leaderboard({ lapRecords, scouts }: LeaderboardProps) {
                   key={entry.scoutId}
                   className="grid grid-cols-[30px_1fr_60px] md:grid-cols-[40px_1fr_80px] items-center bg-[#111] border border-[#222] rounded px-2 py-1.5 hover:border-[#444]"
                 >
-                  <div className="text-center font-['Roboto_Mono'] text-[10px] font-bold text-[#888]">
-                    {i + 1}
-                  </div>
+                  <div className="text-center font-['Roboto_Mono'] text-[10px] font-bold text-[#888]">{i + 1}</div>
                   <div className="min-w-0 pr-2">
                     <div className="text-[11px] font-bold text-[#ddd] uppercase truncate">{entry.name}</div>
-                    <div className="text-[9px] uppercase tracking-widest mt-0.5" style={{ color: entry.troupe === "Ungava" ? "#3b82f6" : "#ef4444" }}>
-                      {entry.troupe}
+                    <div className="text-[9px] uppercase tracking-widest mt-0.5 font-bold" style={{ color: bikeColor(entry.bikeId) }}>
+                      {bikeLabel(entry.bikeId)}
                     </div>
                   </div>
                   <div className="font-['Roboto_Mono'] text-[11px] text-right text-[#22c55e] font-bold">
@@ -134,18 +170,14 @@ export function Leaderboard({ lapRecords, scouts }: LeaderboardProps) {
                   key={entry.scoutId}
                   className="grid grid-cols-[30px_1fr_60px] md:grid-cols-[40px_1fr_80px] items-center bg-[#111] border border-[#222] rounded px-2 py-1.5 hover:border-[#444]"
                 >
-                  <div className="text-center font-['Roboto_Mono'] text-[10px] font-bold text-[#888]">
-                    {i + 1}
-                  </div>
+                  <div className="text-center font-['Roboto_Mono'] text-[10px] font-bold text-[#888]">{i + 1}</div>
                   <div className="min-w-0 pr-2">
                     <div className="text-[11px] font-bold text-[#ddd] uppercase truncate">{entry.name}</div>
                     <div className="flex items-center gap-2 mt-0.5">
-                       <span className="text-[9px] uppercase tracking-widest" style={{ color: entry.troupe === "Ungava" ? "#3b82f6" : "#ef4444" }}>
-                         {entry.troupe}
-                       </span>
-                       <span className="text-[9px] text-[#555] font-['Roboto_Mono']">
-                         {entry.laps} TOURS
-                       </span>
+                      <span className="text-[9px] uppercase tracking-widest font-bold" style={{ color: bikeColor(entry.mainBike) }}>
+                        {bikeLabel(entry.mainBike)}
+                      </span>
+                      <span className="text-[9px] text-[#555] font-['Roboto_Mono']">{entry.laps} TOURS</span>
                     </div>
                   </div>
                   <div className="font-['Roboto_Mono'] text-[11px] text-right text-[#3b82f6] font-bold">
