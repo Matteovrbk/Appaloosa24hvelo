@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { AppState } from "./types";
-import { INITIAL_BIKE_STATE, INITIAL_SCOUTS } from "./types";
+import { INITIAL_BIKE_STATE, INITIAL_SCOUTS, DEFAULT_EVENT_CONFIG } from "./types";
 import { toast } from "sonner";
 import { db } from "../lib/firebase";
 import { ref, onValue, set } from "firebase/database";
@@ -16,7 +16,7 @@ function mergeWithDefaults(parsed: Partial<AppState>): AppState {
     bike2: { ...INITIAL_BIKE_STATE, ...parsed.bike2, queue: Array.isArray(parsed.bike2?.queue) ? parsed.bike2.queue : [] },
     lapRecords: Array.isArray(parsed.lapRecords) ? parsed.lapRecords : [],
     eventStartTime: parsed.eventStartTime ?? Date.now(),
-    eventConfig: parsed.eventConfig,
+    eventConfig: parsed.eventConfig ?? DEFAULT_EVENT_CONFIG,
     commentary: Array.isArray(parsed.commentary) ? parsed.commentary : [],
     lapFlags: parsed.lapFlags && typeof parsed.lapFlags === "object" ? parsed.lapFlags : {},
     raceStarted: parsed.raceStarted ?? true,
@@ -97,7 +97,7 @@ export function useSharedState(readonly = false) {
 
   // For spectator without Firebase: poll localStorage every 500ms
   useEffect(() => {
-    if (!readonly || db) return;
+    if (!readonly || !db) return;
     const interval = setInterval(() => {
       setState(loadState());
     }, 500);
@@ -117,7 +117,7 @@ export function useSharedState(readonly = false) {
       // Push to Firebase for multi-device sync
       if (db) {
         isWritingRef.current = true;
-        set(ref(db, FIREBASE_PATH), next)
+        set(ref(db, FIREBASE_PATH), JSON.parse(JSON.stringify(next)))
           .catch(() => {})
           .finally(() => {
             // Give onValue a moment to fire before we start listening again

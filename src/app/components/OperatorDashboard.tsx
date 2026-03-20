@@ -658,9 +658,9 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
             )}
 
             <div className="space-y-1">
-              {scoutHistoryData.map((r, i) => {
-                const best = Math.min(...scoutHistoryData.map((x) => x.lapTime));
-                return (
+              {(() => {
+                const best = scoutHistoryData.length > 0 ? Math.min(...scoutHistoryData.map((x) => x.lapTime)) : Infinity;
+                return scoutHistoryData.map((r, i) => (
                   <div
                     key={i}
                     className="flex items-center justify-between px-3 py-1.5 bg-[#0a0a0a] border border-[#222] rounded text-[11px]"
@@ -680,8 +680,8 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
                       {formatTimeFull(r.lapTime)}
                     </span>
                   </div>
-                );
-              })}
+                ));
+              })()}
             </div>
           </div>
         </div>
