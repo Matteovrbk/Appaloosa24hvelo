@@ -12,7 +12,7 @@ interface ScoutManagerProps {
 
 export function ScoutManager({ scouts, onAddScout, onRemoveScout, onImportScouts }: ScoutManagerProps) {
   const [name, setName] = useState("");
-  const [troupe, setTroupe] = useState<"Ungava" | "Argapura">("Ungava");
+  const [troupe, setTroupe] = useState<"Appaloosa">("Appaloosa");
   const [role, setRole] = useState<"scout" | "animateur">("scout");
   const [isDragging, setIsDragging] = useState(false);
   const [importPreview, setImportPreview] = useState<Scout[] | null>(null);
@@ -55,8 +55,7 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onImportScouts
             const rawTroupe = (row["Troupe"] || row["troupe"] || row["TROUPE"] || row["Groupe"] || row["groupe"] || "").trim().toLowerCase();
             const rawRole = (row["Role"] || row["role"] || row["Rôle"] || row["rôle"] || row["ROLE"] || row["Type"] || row["type"] || "").trim().toLowerCase();
 
-            const troupe: "Ungava" | "Argapura" =
-              rawTroupe.includes("arga") ? "Argapura" : "Ungava";
+            const troupe: "Appaloosa" = "Appaloosa";
             const role: "scout" | "animateur" =
               rawRole.includes("anim") ? "animateur" : "scout";
 
@@ -110,9 +109,9 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onImportScouts
         <span
           className="text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded font-bold font-['Roboto_Mono'] shrink-0"
           style={{
-            color: s.troupe === "Ungava" ? "#3b82f6" : "#ef4444",
-            backgroundColor: s.troupe === "Ungava" ? "rgba(59,130,246,0.1)" : "rgba(239,68,68,0.1)",
-            border: `1px solid ${s.troupe === "Ungava" ? "rgba(59,130,246,0.2)" : "rgba(239,68,68,0.2)"}`,
+            color: "#1a5fa8",
+            backgroundColor: "rgba(26,95,168,0.1)",
+            border: "1px solid rgba(26,95,168,0.2)",
           }}
         >
           {s.troupe.substring(0, 3)}
@@ -150,7 +149,7 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onImportScouts
                 <span className="font-bold text-[#ddd] uppercase flex-1 truncate">{s.name}</span>
                 <span
                   className="text-[9px] uppercase px-1.5 py-0.5 rounded font-['Roboto_Mono']"
-                  style={{ color: s.troupe === "Ungava" ? "#3b82f6" : "#ef4444" }}
+                  style={{ color: "#1a5fa8" }}
                 >
                   {s.troupe.substring(0, 3)}
                 </span>
@@ -205,7 +204,7 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onImportScouts
           Glisser un fichier Excel ici ou cliquer pour importer
         </div>
         <div className="text-[9px] text-[#444] uppercase tracking-wider mt-1 font-['Roboto_Mono']">
-          Colonnes : Nom, Troupe (Ungava/Argapura), Rôle (Scout/Animateur)
+          Colonnes : Nom, Rôle (Scout/Animateur)
         </div>
       </div>
 
@@ -221,11 +220,10 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onImportScouts
         />
         <select
           value={troupe}
-          onChange={(e) => setTroupe(e.target.value as "Ungava" | "Argapura")}
+          onChange={(e) => setTroupe(e.target.value as "Appaloosa")}
           className="px-3 py-2 rounded bg-[#151515] border border-[#333] text-xs font-bold text-[#eee] uppercase outline-none focus:border-[#666]"
         >
-          <option value="Ungava">UNGAVA</option>
-          <option value="Argapura">ARGAPURA</option>
+          <option value="Appaloosa">APPALOOSA</option>
         </select>
         <select
           value={role}

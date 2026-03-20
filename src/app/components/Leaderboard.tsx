@@ -8,14 +8,12 @@ interface LeaderboardProps {
   scouts: Scout[];
 }
 
-type FilterMode = "all" | "bike1" | "bike2" | "Ungava" | "Argapura";
+type FilterMode = "all" | "bike1" | "bike2";
 
 const FILTERS: { key: FilterMode; label: string; color: string }[] = [
-  { key: "all",     label: "Tous",    color: "#888"       },
-  { key: "bike1",   label: "Vélo 1",  color: BIKE1_COLOR  },
-  { key: "bike2",   label: "Vélo 2",  color: BIKE2_COLOR  },
-  { key: "Ungava",  label: "Ungava",  color: "#3b82f6"    },
-  { key: "Argapura",label: "Argapura",color: "#ef4444"    },
+  { key: "all",   label: "Tous",   color: "#888"      },
+  { key: "bike1", label: "Vélo 1", color: BIKE1_COLOR },
+  { key: "bike2", label: "Vélo 2", color: BIKE2_COLOR },
 ];
 
 export function Leaderboard({ lapRecords, scouts }: LeaderboardProps) {
@@ -32,7 +30,7 @@ export function Leaderboard({ lapRecords, scouts }: LeaderboardProps) {
   const filtered = lapRecords.filter((r) => {
     if (filter === "bike1") return r.bikeId === 1;
     if (filter === "bike2") return r.bikeId === 2;
-    if (filter === "Ungava" || filter === "Argapura") return r.troupe === filter;
+    return true;
     return true;
   });
 

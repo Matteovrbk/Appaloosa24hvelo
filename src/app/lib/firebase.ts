@@ -1,17 +1,18 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getDatabase } from "firebase/database";
 
+// TODO: Remplace les valeurs ci-dessous par celles de ton projet Firebase happaloosa66
+// (Firebase Console > Paramètres du projet > Tes applications > Config)
 const firebaseConfig = {
-  apiKey: "AIzaSyBhsiD3DnEZ0HZxklRk_ZcKAeuTfp1wQhU",
-  authDomain: "hsaintpaul-c49f1.firebaseapp.com",
-  projectId: "hsaintpaul-c49f1",
-  storageBucket: "hsaintpaul-c49f1.firebasestorage.app",
-  messagingSenderId: "464605134715",
-  appId: "1:464605134715:web:779b1c25785bb3f219c7de",
-  measurementId: "G-X9PJNL3WMV",
+  apiKey: "REMPLACE_PAR_TON_API_KEY",
+  authDomain: "happaloosa66.firebaseapp.com",
+  projectId: "happaloosa66",
+  storageBucket: "happaloosa66.firebasestorage.app",
+  messagingSenderId: "REMPLACE_PAR_TON_SENDER_ID",
+  appId: "REMPLACE_PAR_TON_APP_ID",
   databaseURL:
     (import.meta.env.VITE_FIREBASE_DATABASE_URL as string | undefined) ||
-    "https://hsaintpaul-c49f1-default-rtdb.europe-west1.firebasedatabase.app",
+    "https://happaloosa66-default-rtdb.europe-west1.firebasedatabase.app",
 };
 
 let db: ReturnType<typeof getDatabase> | null = null;

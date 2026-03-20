@@ -22,12 +22,12 @@ export function SpectatorView() {
   const [bike1MapPos] = useState(0);
   const [bike2MapPos] = useState(0);
   const [flashLap, setFlashLap] = useState<LapRecord | null>(null);
-  const [spectatorFilter, setSpectatorFilter] = useState<"all" | "bike1" | "bike2" | "Ungava" | "Argapura">("all");
+  const [spectatorFilter, setSpectatorFilter] = useState<"all" | "bike1" | "bike2">("all");
   const [rightTab, setRightTab] = useState<"leaderboard" | "chat">("leaderboard");
   const [unreadChat, setUnreadChat] = useState(0);
   const [lastSeenChatCount, setLastSeenChatCount] = useState(0);
   const [chatText, setChatText] = useState("");
-  const [chatAuthor, setChatAuthor] = useState(() => sessionStorage.getItem("sp51_chat_name") || "");
+  const [chatAuthor, setChatAuthor] = useState(() => sessionStorage.getItem("appaloosa66_chat_name") || "");
   const [showQR, setShowQR] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -96,17 +96,15 @@ export function SpectatorView() {
     state.bike2.lapStartTime !== null ? currentTime - state.bike2.lapStartTime : 0;
 
   const SPECTATOR_FILTERS = [
-    { key: "all" as const,      label: "TOUS",     color: "#888"      },
-    { key: "bike1" as const,    label: "V1",       color: BIKE1_COLOR },
-    { key: "bike2" as const,    label: "V2",       color: BIKE2_COLOR },
-    { key: "Ungava" as const,   label: "UNGAVA",   color: "#3b82f6"   },
-    { key: "Argapura" as const, label: "ARGAPURA", color: "#ef4444"   },
+    { key: "all" as const,   label: "TOUS",   color: "#888"      },
+    { key: "bike1" as const, label: "V1",     color: BIKE1_COLOR },
+    { key: "bike2" as const, label: "V2",     color: BIKE2_COLOR },
   ];
 
   const filteredRecords = state.lapRecords.filter((r) => {
     if (spectatorFilter === "bike1") return r.bikeId === 1;
     if (spectatorFilter === "bike2") return r.bikeId === 2;
-    if (spectatorFilter === "Ungava" || spectatorFilter === "Argapura") return r.troupe === spectatorFilter;
+    return true;
     return true;
   });
 
@@ -148,9 +146,9 @@ export function SpectatorView() {
           </button>
           <div className="w-px h-4 bg-[#333]" />
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-[#e11d48]" />
+            <Activity className="w-4 h-4 text-[#1a5fa8]" />
             <span className="text-[11px] font-bold tracking-widest text-[#fff] uppercase">
-              24hSaintPaul — Chronométrage Direct
+              24hAppaloosa — Chronométrage Direct
             </span>
           </div>
         </div>
@@ -183,7 +181,7 @@ export function SpectatorView() {
               <div className="w-px h-4 bg-[#333]" />
               <div className="flex items-center gap-3">
                 <span className="text-[10px] text-[#666] uppercase tracking-widest">RESTANT: </span>
-                <div className="font-['Roboto_Mono'] text-[#e11d48] text-sm">
+                <div className="font-['Roboto_Mono'] text-[#1a5fa8] text-sm">
                   {formatDuration(remaining)}
                 </div>
               </div>
@@ -204,7 +202,7 @@ export function SpectatorView() {
       {state.eventConfig && (
         <div className="h-[3px] bg-[#111] w-full">
           <div
-            className="h-full bg-gradient-to-r from-[#e11d48] to-[#22c55e] transition-all duration-1000"
+            className="h-full bg-gradient-to-r from-[#1a5fa8] to-[#22c55e] transition-all duration-1000"
             style={{ width: `${Math.min(100, progress * 100)}%` }}
           />
         </div>
@@ -544,7 +542,7 @@ export function SpectatorView() {
               <div className="border-t border-[#222] p-3 space-y-2 bg-[#080808]">
                 <input
                   value={chatAuthor}
-                  onChange={(e) => { setChatAuthor(e.target.value); sessionStorage.setItem("sp51_chat_name", e.target.value); }}
+                  onChange={(e) => { setChatAuthor(e.target.value); sessionStorage.setItem("appaloosa66_chat_name", e.target.value); }}
                   placeholder="Ton prénom…"
                   maxLength={30}
                   className="w-full bg-[#111] border border-[#222] rounded px-3 py-1.5 text-[11px] text-white placeholder-[#444] focus:outline-none focus:border-[#e2a03f]"

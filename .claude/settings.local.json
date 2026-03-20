@@ -28,7 +28,8 @@
       "Bash(npm run:*)",
       "Skill(update-config)",
       "Bash(claude config:*)",
-      "Bash(npm list:*)"
+      "Bash(npm list:*)",
+      "Bash(wc:*)"
     ]
   }
 }

@@ -2,9 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { ShieldCheck, Lock, AlertTriangle } from "lucide-react";
 
 // Mot de passe admin — à changer selon vos besoins
-const ADMIN_PASSWORD = "sp51";
+const ADMIN_PASSWORD = "AurelieLaPlusBelle";
 
-const AUTH_KEY = "sp51_admin_auth";
+const AUTH_KEY = "appaloosa66_admin_auth";
 
 export function isAdminAuthenticated(): boolean {
   return sessionStorage.getItem(AUTH_KEY) === "true";
@@ -49,7 +49,8 @@ export function AdminLogin({ onSuccess }: AdminLoginProps) {
       >
         {/* Header */}
         <div className="bg-[#151515] border-b border-[#222] px-6 py-4 flex items-center gap-3">
-          <div className="bg-[#e11d48] p-2 rounded-md shadow-[0_0_15px_rgba(225,29,72,0.4)]">
+          <img src="/logo-appaloosa.png" alt="Appaloosa 66" className="w-10 h-10 rounded-full object-cover" />
+          <div className="bg-[#1a5fa8] p-2 rounded-md shadow-[0_0_15px_rgba(26,95,168,0.4)] ml-1">
             <ShieldCheck className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -57,7 +58,7 @@ export function AdminLogin({ onSuccess }: AdminLoginProps) {
               Accès Opérateur
             </h1>
             <div className="text-[10px] uppercase tracking-widest text-[#666] mt-1">
-              SAINT-PAUL 51 &bull; RACE CONTROL
+              KAPELLEVELD 66 &bull; RACE CONTROL
             </div>
           </div>
         </div>
@@ -79,7 +80,7 @@ export function AdminLogin({ onSuccess }: AdminLoginProps) {
                 }}
                 placeholder="ENTRER LE MOT DE PASSE..."
                 autoFocus
-                className="w-full pl-10 pr-4 py-3 rounded bg-[#0a0a0a] border border-[#333] text-sm font-bold text-[#eee] uppercase placeholder:text-[#444] placeholder:text-xs outline-none focus:border-[#e11d48] transition-colors font-['Roboto_Mono']"
+                className="w-full pl-10 pr-4 py-3 rounded bg-[#0a0a0a] border border-[#333] text-sm font-bold text-[#eee] uppercase placeholder:text-[#444] placeholder:text-xs outline-none focus:border-[#1a5fa8] transition-colors font-['Roboto_Mono']"
               />
             </div>
           </div>
@@ -93,7 +94,7 @@ export function AdminLogin({ onSuccess }: AdminLoginProps) {
 
           <button
             type="submit"
-            className="w-full py-3 bg-[#e11d48] hover:bg-[#be123c] text-white font-bold text-xs uppercase tracking-widest rounded transition-colors shadow-[0_0_20px_rgba(225,29,72,0.3)]"
+            className="w-full py-3 bg-[#1a5fa8] hover:bg-[#154d8a] text-white font-bold text-xs uppercase tracking-widest rounded transition-colors shadow-[0_0_20px_rgba(26,95,168,0.3)]"
           >
             Connexion
           </button>

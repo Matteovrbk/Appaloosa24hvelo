@@ -1,7 +1,7 @@
 export interface Scout {
   id: string;
   name: string;
-  troupe: "Ungava" | "Argapura";
+  troupe: "Appaloosa";
   role: "scout" | "animateur";
 }
 
@@ -67,7 +67,7 @@ export const BIKE1_COLOR = "#16a34a";
 export const BIKE2_COLOR = "#ea580c";
 
 export const DEFAULT_EVENT_CONFIG: EventConfig = {
-  eventName: "24H Vélo — Saint-Paul 51",
+  eventName: "24H Vélo — Appaloosa 66",
   startTime: Date.now(),
   durationMs: 86400000,
   circuitLengthKm: 2.61,

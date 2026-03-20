@@ -5,9 +5,9 @@ import { toast } from "sonner";
 import { db } from "../lib/firebase";
 import { ref, onValue, set } from "firebase/database";
 
-const STORAGE_KEY = "sp51_state";
-const CHANNEL_NAME = "sp51_sync";
-const FIREBASE_PATH = "sp51/state";
+const STORAGE_KEY = "appaloosa66_state";
+const CHANNEL_NAME = "appaloosa66_sync";
+const FIREBASE_PATH = "appaloosa66/state";
 
 function mergeWithDefaults(parsed: Partial<AppState>): AppState {
   return {

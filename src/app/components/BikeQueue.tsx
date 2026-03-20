@@ -264,7 +264,7 @@ export function BikeQueue({
                       <div className="text-xs font-bold text-[#eee] uppercase">{s.name}</div>
                       <div
                         className="text-[9px] uppercase tracking-widest"
-                        style={{ color: s.troupe === "Ungava" ? "#3b82f6" : "#ef4444" }}
+                        style={{ color: "#1a5fa8" }}
                       >
                         {s.troupe}
                       </div>
@@ -294,7 +294,7 @@ export function BikeQueue({
                   <span
                     className="text-[9px] uppercase tracking-widest"
                     style={{
-                      color: scout.troupe === "Ungava" ? "#3b82f6" : "#ef4444",
+                      color: "#1a5fa8",
                     }}
                   >
                     {scout.troupe}

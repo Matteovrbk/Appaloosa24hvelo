@@ -460,7 +460,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
   const handleBackup = () => {
     const now = new Date();
     const p = (n: number) => String(n).padStart(2, "0");
-    const filename = `sp51_backup_${now.getFullYear()}${p(now.getMonth() + 1)}${p(now.getDate())}_${p(now.getHours())}${p(now.getMinutes())}.json`;
+    const filename = `appaloosa66_backup_${now.getFullYear()}${p(now.getMonth() + 1)}${p(now.getDate())}_${p(now.getHours())}${p(now.getMinutes())}.json`;
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -516,7 +516,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
       "Scouts",
     );
 
-    XLSX.writeFile(wb, `sp51_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    XLSX.writeFile(wb, `appaloosa66_export_${new Date().toISOString().slice(0, 10)}.xlsx`);
     toast.success("Export Excel généré");
   };
 
@@ -753,7 +753,8 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
       <header className="bg-[#111] border-b border-[#222] px-4 md:px-6 py-2 sticky top-0 z-20">
         <div className="max-w-[1800px] mx-auto flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-3">
-            <div className="bg-[#e11d48] text-white p-1.5 rounded-md shadow-[0_0_10px_rgba(225,29,72,0.5)]">
+            <img src="/logo-appaloosa.png" alt="Appaloosa 66" className="w-9 h-9 rounded-full object-cover" />
+            <div className="bg-[#1a5fa8] text-white p-1.5 rounded-md shadow-[0_0_10px_rgba(26,95,168,0.5)]">
               <Settings2 className="w-5 h-5" />
             </div>
             <div>
@@ -761,7 +762,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
                 {state.eventConfig?.eventName ?? "Contrôle de Course"}
               </h1>
               <div className="text-[10px] uppercase tracking-widest text-[#888] mt-1">
-                SAINT-PAUL 51 &bull; UNGAVA/ARGAPURA
+                KAPELLEVELD 66 &bull; APPALOOSA
               </div>
             </div>
           </div>
@@ -772,7 +773,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
               <>
                 <div className="flex flex-col items-end">
                   <div className="text-[10px] uppercase tracking-widest text-[#888]">Restant</div>
-                  <div className="font-['Roboto_Mono'] text-lg font-bold text-[#e11d48] leading-none mt-1">
+                  <div className="font-['Roboto_Mono'] text-lg font-bold text-[#1a5fa8] leading-none mt-1">
                     {formatDuration(remaining)}
                   </div>
                 </div>
@@ -879,7 +880,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
       {state.eventConfig && (
         <div className="h-[3px] bg-[#111] w-full">
           <div
-            className="h-full bg-gradient-to-r from-[#e11d48] to-[#22c55e] transition-all duration-1000"
+            className="h-full bg-gradient-to-r from-[#1a5fa8] to-[#22c55e] transition-all duration-1000"
             style={{ width: `${Math.min(100, progress * 100)}%` }}
           />
         </div>
@@ -1114,7 +1115,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
                       </td>
                       <td className="py-2 px-4 font-bold text-[#ddd]">{record.scoutName}</td>
                       <td className="py-2 px-4">
-                        <span className={record.troupe === "Ungava" ? "text-[#3b82f6]" : "text-[#ef4444]"}>
+                        <span className="text-[#1a5fa8]">
                           {record.troupe}
                         </span>
                       </td>

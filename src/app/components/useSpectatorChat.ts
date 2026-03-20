@@ -9,7 +9,7 @@ export interface ChatMessage {
   timestamp: number;
 }
 
-const CHAT_PATH = "sp51/chat";
+const CHAT_PATH = "appaloosa66/chat";
 const MAX_MESSAGES = 50;
 
 export function useSpectatorChat() {
