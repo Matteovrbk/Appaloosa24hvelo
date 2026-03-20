@@ -15,7 +15,20 @@
       "Bash(find \"C:/Users/verbe/Desktop/Site pour l''''unité scoute/src\" -type f \\\\\\(-name *.tsx -o -name *.ts -o -name *.json \\\\\\))",
       "Bash(find \"C:/Users/verbe/Desktop/Site pour l''''unité scoute\" \\\\\\(-name *.mp3 -o -name *.wav -o -name *.ogg -o -name *.m4a \\\\\\))",
       "Bash(npx tsc:*)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "WebFetch(domain:www.24heuresvelo.be)",
+      "WebFetch(domain:fr.wikipedia.org)",
+      "WebSearch",
+      "WebFetch(domain:www.calculitineraires.fr)",
+      "WebFetch(domain:wikimonde.com)",
+      "WebFetch(domain:latoilescoute.net)",
+      "WebFetch(domain:en.wikipedia.org)",
+      "WebFetch(domain:www.bikemap.net)",
+      "Read(//c/Users/verbe/Desktop/**)",
+      "Bash(npm run:*)",
+      "Skill(update-config)",
+      "Bash(claude config:*)",
+      "Bash(npm list:*)"
     ]
   }
 }

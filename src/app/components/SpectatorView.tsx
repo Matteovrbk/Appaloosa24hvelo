@@ -11,7 +11,7 @@ import {
   formatDuration,
 } from "./types";
 import type { LapRecord } from "./types";
-import { ArrowLeft, Clock, Activity, Maximize, Send, MessageSquare } from "lucide-react";
+import { ArrowLeft, Clock, Activity, Maximize, Send } from "lucide-react";
 import QRCode from "react-qr-code";
 
 export function SpectatorView() {
@@ -22,7 +22,10 @@ export function SpectatorView() {
   const [bike1MapPos, setBike1MapPos] = useState(0);
   const [bike2MapPos, setBike2MapPos] = useState(0);
   const [flashLap, setFlashLap] = useState<LapRecord | null>(null);
-  const [hideAnimateurs, setHideAnimateurs] = useState(false);
+  const [spectatorFilter, setSpectatorFilter] = useState<"all" | "bike1" | "bike2" | "Ungava" | "Argapura">("all");
+  const [rightTab, setRightTab] = useState<"leaderboard" | "chat">("leaderboard");
+  const [unreadChat, setUnreadChat] = useState(0);
+  const [lastSeenChatCount, setLastSeenChatCount] = useState(0);
   const [chatText, setChatText] = useState("");
   const [chatAuthor, setChatAuthor] = useState(() => sessionStorage.getItem("sp51_chat_name") || "");
   const [showQR, setShowQR] = useState(false);
@@ -60,6 +63,17 @@ export function SpectatorView() {
     setLastLapCount(state.lapRecords.length);
   }, [state.lapRecords.length, state.lapRecords]);
 
+  // Unread chat counter
+  useEffect(() => {
+    if (rightTab === "chat") {
+      setLastSeenChatCount(chatMessages.length);
+      setUnreadChat(0);
+    } else {
+      const newCount = Math.max(0, chatMessages.length - lastSeenChatCount);
+      setUnreadChat(newCount);
+    }
+  }, [chatMessages.length, rightTab, lastSeenChatCount]);
+
   const eventElapsed = currentTime - state.eventStartTime / 1000;
   const eventHours = Math.floor(eventElapsed / 3600);
   const eventMins = Math.floor((eventElapsed % 3600) / 60);
@@ -80,77 +94,36 @@ export function SpectatorView() {
   const elapsed2 =
     state.bike2.lapStartTime !== null ? currentTime - state.bike2.lapStartTime : 0;
 
-  // Best Times Array
-  const bestTimes = new Map<string, { time: number; name: string; troupe: string; bikeId: number }>();
-  state.lapRecords.forEach((r) => {
-    const existing = bestTimes.get(r.scoutId);
+  const SPECTATOR_FILTERS = [
+    { key: "all" as const,      label: "TOUS",     color: "#888"      },
+    { key: "bike1" as const,    label: "V1",       color: BIKE1_COLOR },
+    { key: "bike2" as const,    label: "V2",       color: BIKE2_COLOR },
+    { key: "Ungava" as const,   label: "UNGAVA",   color: "#3b82f6"   },
+    { key: "Argapura" as const, label: "ARGAPURA", color: "#ef4444"   },
+  ];
+
+  const filteredRecords = state.lapRecords.filter((r) => {
+    if (spectatorFilter === "bike1") return r.bikeId === 1;
+    if (spectatorFilter === "bike2") return r.bikeId === 2;
+    if (spectatorFilter === "Ungava" || spectatorFilter === "Argapura") return r.troupe === spectatorFilter;
+    return true;
+  });
+
+  const bestTimesMap = new Map<string, { time: number; name: string; troupe: string; bikeId: 1 | 2; laps: number }>();
+  filteredRecords.forEach((r) => {
+    const existing = bestTimesMap.get(r.scoutId);
     if (!existing || r.lapTime < existing.time) {
-      bestTimes.set(r.scoutId, { time: r.lapTime, name: r.scoutName, troupe: r.troupe, bikeId: r.bikeId });
+      bestTimesMap.set(r.scoutId, { time: r.lapTime, name: r.scoutName, troupe: r.troupe, bikeId: r.bikeId as 1 | 2, laps: 0 });
     }
   });
-  const bestTimesArray = Array.from(bestTimes.entries())
+  filteredRecords.forEach((r) => {
+    const e = bestTimesMap.get(r.scoutId);
+    if (e) e.laps++;
+  });
+
+  const filteredBestTimes = Array.from(bestTimesMap.entries())
     .map(([id, data]) => ({ scoutId: id, ...data }))
     .sort((a, b) => a.time - b.time);
-
-  const filteredBestTimes = hideAnimateurs
-    ? bestTimesArray.filter((entry) => {
-        const scout = state.scouts.find((s) => s.id === entry.scoutId);
-        return !scout || scout.role !== "animateur";
-      })
-    : bestTimesArray;
-
-  const getTroupeColor = (troupe: string) =>
-    troupe === "Ungava" ? BIKE1_COLOR : BIKE2_COLOR;
-
-  // Helper for F1 Style Table
-  const renderF1TableRows = () => {
-    if (filteredBestTimes.length === 0) {
-      return (
-        <div className="flex items-center justify-center h-32 text-[#555] font-['Roboto_Mono'] text-xs uppercase tracking-widest">
-          EN ATTENTE DES TEMPS...
-        </div>
-      );
-    }
-
-    const fastestLap = filteredBestTimes[0]?.time || 0;
-
-    return filteredBestTimes.slice(0, 15).map((entry, i) => {
-      const gap = i === 0 ? "" : `+${formatTimeFull(entry.time - fastestLap)}`;
-      const isFirst = i === 0;
-
-      return (
-        <div
-          key={entry.scoutId}
-          className="grid grid-cols-[30px_1fr_60px_80px_80px] md:grid-cols-[40px_1fr_100px_100px_100px] items-center text-xs md:text-sm border-b border-[#222] h-[34px] md:h-[40px]"
-        >
-          <div className="text-center font-['Roboto_Mono'] text-[#888]">{i + 1}</div>
-          <div className="flex items-center gap-2 overflow-hidden px-2">
-            <div
-              className="w-1 h-[14px] flex-shrink-0"
-              style={{ backgroundColor: entry.bikeId === 1 ? BIKE1_COLOR : BIKE2_COLOR }}
-            />
-            <span className="font-semibold text-[#ddd] tracking-wide uppercase truncate">
-              {entry.name.substring(0, 3).toUpperCase()}{" "}
-              <span className="font-normal opacity-70">{entry.name.substring(3)}</span>
-            </span>
-          </div>
-          <div className="text-[#666] uppercase text-[10px] md:text-xs tracking-wider truncate">
-            {entry.troupe.substring(0, 3)}
-          </div>
-          <div
-            className={`font-['Roboto_Mono'] text-right pr-4 ${
-              isFirst ? "text-[#a855f7] font-bold" : "text-[#fff]"
-            }`}
-          >
-            {formatTimeFull(entry.time)}
-          </div>
-          <div className="font-['Roboto_Mono'] text-[#888] text-right pr-4">
-            {isFirst ? "LEADER" : gap}
-          </div>
-        </div>
-      );
-    });
-  };
 
   const toggleFullscreen = () => {
     if (document.fullscreenElement) {
@@ -431,139 +404,239 @@ export function SpectatorView() {
             </div>
           </div>
 
-          {/* Live Chat */}
-          <div className="flex flex-col border-t border-[#222] bg-[#060606]" style={{ minHeight: 0, flexShrink: 0 }}>
-            <div className="flex items-center gap-1.5 px-3 py-2 border-b border-[#1a1a1a]">
-              <MessageSquare className="w-3 h-3 text-[#555]" />
-              <span className="text-[10px] text-[#888] uppercase tracking-widest font-semibold">Chat en direct</span>
-              {!chatConnected && <span className="text-[9px] text-[#ef4444] ml-auto">hors-ligne</span>}
-            </div>
-            {/* Messages */}
-            <div className="overflow-y-auto custom-scrollbar px-2 py-1 space-y-1" style={{ maxHeight: 160 }}>
-              {chatMessages.length === 0 && (
-                <div className="text-center text-[#444] py-4 text-[9px] uppercase tracking-widest">Aucun message</div>
-              )}
-              {chatMessages.map((msg) => (
-                <div key={msg.id} className="text-[10px] leading-relaxed">
-                  <span className="font-bold text-[#e2a03f] mr-1">{msg.author}</span>
-                  <span className="text-[#ccc]">{msg.text}</span>
-                </div>
-              ))}
-              <div ref={chatEndRef} />
-            </div>
-            {/* Input */}
-            <div className="p-2 border-t border-[#1a1a1a] space-y-1.5">
-              <input
-                value={chatAuthor}
-                onChange={(e) => {
-                  setChatAuthor(e.target.value);
-                  sessionStorage.setItem("sp51_chat_name", e.target.value);
-                }}
-                placeholder="Ton prénom…"
-                maxLength={30}
-                className="w-full bg-[#111] border border-[#222] rounded px-2 py-1 text-[10px] text-white placeholder-[#444] focus:outline-none focus:border-[#e2a03f]"
-              />
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  sendMessage(chatText, chatAuthor || "Spectateur");
-                  setChatText("");
-                }}
-                className="flex gap-1"
-              >
-                <input
-                  value={chatText}
-                  onChange={(e) => setChatText(e.target.value)}
-                  placeholder="Écris un message…"
-                  maxLength={200}
-                  disabled={!chatConnected}
-                  className="flex-1 bg-[#111] border border-[#222] rounded px-2 py-1 text-[10px] text-white placeholder-[#444] focus:outline-none focus:border-[#3b82f6] disabled:opacity-40"
-                />
-                <button
-                  type="submit"
-                  disabled={!chatConnected || !chatText.trim()}
-                  className="px-2 py-1 bg-[#3b82f6] hover:bg-[#2563eb] rounded text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  <Send className="w-3 h-3" />
-                </button>
-              </form>
-            </div>
-          </div>
-
         </div>
 
         {/* RIGHT COLUMN: Timing Tower */}
-        <div className="flex-1 flex flex-col min-w-0 bg-[#000]">
-          
-          <div className="h-[30px] bg-[#111] flex items-center px-3 border-b border-[#222] justify-between">
-            <span className="text-[10px] text-[#888] uppercase tracking-widest font-semibold flex items-center gap-1.5">
-              <Clock className="w-3 h-3" />
-              Temps / Meilleurs Tours
-            </span>
-            <button
-              onClick={() => setHideAnimateurs(!hideAnimateurs)}
-              className={`text-[10px] uppercase tracking-widest px-2 py-0.5 rounded transition-colors ${
-                hideAnimateurs
-                  ? "bg-[#eab308] text-black font-bold"
-                  : "bg-[#222] text-[#888] hover:bg-[#333]"
-              }`}
-            >
-              {hideAnimateurs ? "Animateurs masqués" : "Tous"}
-            </button>
-          </div>
+        <div className="flex-1 flex flex-col min-w-0 bg-[#000] relative overflow-hidden">
 
-          {/* Table Header */}
-          <div className="grid grid-cols-[30px_1fr_60px_80px_80px] md:grid-cols-[40px_1fr_100px_100px_100px] items-center text-[10px] uppercase tracking-widest text-[#666] bg-[#080808] border-b border-[#222] h-[30px]">
-            <div className="text-center">Pos</div>
-            <div className="px-2">Cycliste</div>
-            <div>Trp</div>
-            <div className="text-right pr-4">Meilleur</div>
-            <div className="text-right pr-4">Écart</div>
-          </div>
-
-          {/* Table Body */}
-          <div className="flex-1 overflow-y-auto">
-            {renderF1TableRows()}
-          </div>
-
-          {/* Commentary & Recent Laps Footer */}
-          <div className="h-[34px] border-t border-[#222] bg-[#111] overflow-hidden flex items-center">
-            <div className="bg-[#222] text-[#fff] text-[10px] uppercase tracking-widest px-3 h-full flex items-center font-bold z-10 relative shadow-[10px_0_10px_#111]">
-              DIRECT
+          {/* Header + Filtres */}
+          <div className="bg-[#111] border-b border-[#222] px-3 py-2 flex flex-col gap-2">
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3 h-3 text-[#555]" />
+              <span className="text-[10px] text-[#888] uppercase tracking-widest font-semibold flex-1">Temps / Meilleurs Tours</span>
             </div>
-            <div className="flex-1 overflow-hidden relative flex items-center">
-              <div className="flex gap-8 px-4 animate-[marquee_20s_linear_infinite] whitespace-nowrap">
-                {(state.commentary ?? []).slice(-3).map((msg) => (
-                  <div key={msg.id} className="flex items-center gap-2">
-                    <span className={`text-[10px] font-['Roboto_Mono'] ${msg.type === "system" ? "text-[#22c55e]" : "text-[#eab308]"}`}>
-                      {msg.type === "system" ? "SYS" : "MSG"}
-                    </span>
-                    <span className="text-[#ccc] text-xs">
+            <div className="flex gap-1 flex-wrap">
+              {SPECTATOR_FILTERS.map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => setSpectatorFilter(f.key)}
+                  className="px-2 py-0.5 text-[9px] uppercase tracking-widest font-bold rounded border transition-all"
+                  style={
+                    spectatorFilter === f.key
+                      ? { backgroundColor: f.color, borderColor: f.color, color: "#000" }
+                      : { backgroundColor: "transparent", borderColor: "#333", color: "#666" }
+                  }
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Leaderboard */}
+          {rightTab === "leaderboard" && (
+            <>
+              {/* Table Header */}
+              <div className="grid grid-cols-[30px_1fr_55px_80px_80px_55px] items-center text-[10px] uppercase tracking-widest text-[#666] bg-[#080808] border-b border-[#222] h-[28px]">
+                <div className="text-center">Pos</div>
+                <div className="px-2">Cycliste</div>
+                <div className="text-center">Vélo</div>
+                <div className="text-right pr-4">Meilleur</div>
+                <div className="text-right pr-4">Écart</div>
+                <div className="text-right pr-2">Tours</div>
+              </div>
+
+              {/* Table Body */}
+              <div className="flex-1 overflow-y-auto">
+                {filteredBestTimes.length === 0 ? (
+                  <div className="flex items-center justify-center h-32 text-[#555] font-['Roboto_Mono'] text-xs uppercase tracking-widest">
+                    EN ATTENTE DES TEMPS...
+                  </div>
+                ) : (
+                  filteredBestTimes.slice(0, 20).map((entry, i) => {
+                    const fastestLap = filteredBestTimes[0].time;
+                    const gap = i === 0 ? "" : `+${formatTimeFull(entry.time - fastestLap)}`;
+                    const podiumColors = ["#ffd700", "#c0c0c0", "#cd7f32"];
+                    const podiumColor = i < 3 ? podiumColors[i] : null;
+                    const bikeColor = entry.bikeId === 1 ? BIKE1_COLOR : BIKE2_COLOR;
+
+                    return (
+                      <div
+                        key={entry.scoutId}
+                        className={`grid grid-cols-[30px_1fr_55px_80px_80px_55px] items-center border-b border-[#1a1a1a] transition-colors ${
+                          i === 0 ? "bg-[#0d0d0d]" : "hover:bg-[#0a0a0a]"
+                        }`}
+                        style={i === 0 ? { boxShadow: `inset 3px 0 0 ${bikeColor}` } : {}}
+                      >
+                        {/* Position */}
+                        <div className="text-center py-2.5">
+                          {podiumColor ? (
+                            <span className="font-['Roboto_Mono'] font-bold text-[11px]" style={{ color: podiumColor }}>
+                              {i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}
+                            </span>
+                          ) : (
+                            <span className="font-['Roboto_Mono'] text-[#555] text-[10px]">{i + 1}</span>
+                          )}
+                        </div>
+
+                        {/* Name */}
+                        <div className="flex items-center gap-2 overflow-hidden px-2 py-2.5">
+                          <div className="w-1 h-[14px] flex-shrink-0 rounded-sm" style={{ backgroundColor: bikeColor }} />
+                          <span
+                            className={`font-semibold tracking-wide uppercase truncate ${i === 0 ? "text-white text-sm" : "text-[#aaa] text-xs"}`}
+                          >
+                            {entry.name.substring(0, 3).toUpperCase()}
+                            <span className="font-normal opacity-60">{entry.name.substring(3)}</span>
+                          </span>
+                          {i === 0 && (
+                            <span className="text-[8px] bg-[#ffd700] text-black px-1 py-0.5 rounded font-bold uppercase tracking-widest ml-1 flex-shrink-0 animate-pulse">
+                              LEADER
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Bike */}
+                        <div className="text-center py-2.5">
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: bikeColor + "22", color: bikeColor }}>
+                            V{entry.bikeId}
+                          </span>
+                        </div>
+
+                        {/* Best time */}
+                        <div className={`font-['Roboto_Mono'] text-right pr-4 py-2.5 text-[11px] ${i === 0 ? "font-bold" : ""}`}
+                          style={{ color: podiumColor ?? "#fff" }}>
+                          {formatTimeFull(entry.time)}
+                        </div>
+
+                        {/* Gap */}
+                        <div className="font-['Roboto_Mono'] text-[#555] text-right pr-4 py-2.5 text-[10px]">
+                          {i === 0 ? "—" : gap}
+                        </div>
+
+                        {/* Laps */}
+                        <div className="font-['Roboto_Mono'] text-[#444] text-right pr-2 py-2.5 text-[10px]">
+                          {entry.laps}
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Chat Tab */}
+          {rightTab === "chat" && (
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 overflow-y-auto custom-scrollbar px-3 py-2 space-y-2">
+                {chatMessages.length === 0 && (
+                  <div className="text-center text-[#444] py-8 text-[10px] uppercase tracking-widest">
+                    Aucun message — sois le premier ! 👋
+                  </div>
+                )}
+                {chatMessages.map((msg) => (
+                  <div key={msg.id} className="flex flex-col gap-0.5">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-[10px] font-bold text-[#e2a03f]">{msg.author}</span>
+                      <span className="text-[8px] text-[#444] font-['Roboto_Mono']">
+                        {new Date(msg.timestamp).toLocaleTimeString("fr-BE", { hour: "2-digit", minute: "2-digit" })}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-[#ccc] bg-[#0d0d0d] border border-[#1a1a1a] rounded px-2 py-1.5">
                       {msg.text}
-                    </span>
+                    </div>
                   </div>
                 ))}
-                {state.lapRecords.slice(-5).map((lap, i) => (
-                  <div key={`lap-${i}`} className="flex items-center gap-2">
-                    <span className="text-[#888] text-[10px] font-['Roboto_Mono']">
-                      V{lap.bikeId}
-                    </span>
-                    <span className="text-[#ccc] text-xs font-semibold uppercase">
-                      {lap.scoutName}
-                    </span>
-                    <span className="text-[#a855f7] text-xs font-['Roboto_Mono']">
-                      {formatTimeFull(lap.lapTime)}
-                    </span>
-                  </div>
-                ))}
-                {state.lapRecords.length === 0 && (state.commentary ?? []).length === 0 && (
-                  <span className="text-[#555] text-[10px] tracking-widest uppercase font-['Roboto_Mono']">
-                    AUCUN TOUR TERMINÉ
+                <div ref={chatEndRef} />
+              </div>
+              <div className="border-t border-[#222] p-3 space-y-2 bg-[#080808]">
+                <input
+                  value={chatAuthor}
+                  onChange={(e) => { setChatAuthor(e.target.value); sessionStorage.setItem("sp51_chat_name", e.target.value); }}
+                  placeholder="Ton prénom…"
+                  maxLength={30}
+                  className="w-full bg-[#111] border border-[#222] rounded px-3 py-1.5 text-[11px] text-white placeholder-[#444] focus:outline-none focus:border-[#e2a03f]"
+                />
+                <form
+                  onSubmit={(e) => { e.preventDefault(); sendMessage(chatText, chatAuthor || "Spectateur"); setChatText(""); }}
+                  className="flex gap-2"
+                >
+                  <input
+                    value={chatText}
+                    onChange={(e) => setChatText(e.target.value)}
+                    placeholder={chatConnected ? "Écris un message…" : "Chat hors-ligne"}
+                    maxLength={200}
+                    disabled={!chatConnected}
+                    className="flex-1 bg-[#111] border border-[#222] rounded px-3 py-1.5 text-[11px] text-white placeholder-[#444] focus:outline-none focus:border-[#3b82f6] disabled:opacity-40"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!chatConnected || !chatText.trim()}
+                    className="px-3 py-1.5 bg-[#3b82f6] hover:bg-[#2563eb] rounded text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex items-center gap-1 text-[11px]"
+                  >
+                    <Send className="w-3 h-3" />
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Bottom: Tabs + Commentary */}
+          <div className="border-t border-[#222] flex-shrink-0">
+            {/* Tab switcher */}
+            <div className="flex border-b border-[#1a1a1a]">
+              <button
+                onClick={() => setRightTab("leaderboard")}
+                className={`flex-1 py-1.5 text-[10px] uppercase tracking-widest font-bold transition-colors flex items-center justify-center gap-1.5 ${
+                  rightTab === "leaderboard" ? "bg-[#111] text-[#fff]" : "bg-[#080808] text-[#555] hover:text-[#888]"
+                }`}
+              >
+                🏆 Classement
+              </button>
+              <button
+                onClick={() => { setRightTab("chat"); setUnreadChat(0); setLastSeenChatCount(chatMessages.length); }}
+                className={`flex-1 py-1.5 text-[10px] uppercase tracking-widest font-bold transition-colors flex items-center justify-center gap-1.5 ${
+                  rightTab === "chat" ? "bg-[#111] text-[#fff]" : "bg-[#080808] text-[#555] hover:text-[#888]"
+                }`}
+              >
+                💬 Chat
+                {unreadChat > 0 && (
+                  <span className="bg-[#ef4444] text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center">
+                    {unreadChat > 9 ? "9+" : unreadChat}
                   </span>
                 )}
+              </button>
+            </div>
+
+            {/* Commentary marquee */}
+            <div className="h-[32px] bg-[#0d0d0d] overflow-hidden flex items-center">
+              <div className="bg-[#222] text-[#fff] text-[10px] uppercase tracking-widest px-3 h-full flex items-center font-bold z-10 relative shadow-[10px_0_10px_#0d0d0d] flex-shrink-0">
+                DIRECT
+              </div>
+              <div className="flex-1 overflow-hidden relative flex items-center">
+                <div className="flex gap-8 px-4 animate-[marquee_20s_linear_infinite] whitespace-nowrap">
+                  {(state.commentary ?? []).slice(-3).map((msg) => (
+                    <div key={msg.id} className="flex items-center gap-2">
+                      <span className={`text-[10px] font-['Roboto_Mono'] ${msg.type === "system" ? "text-[#22c55e]" : "text-[#eab308]"}`}>
+                        {msg.type === "system" ? "SYS" : "MSG"}
+                      </span>
+                      <span className="text-[#ccc] text-xs">{msg.text}</span>
+                    </div>
+                  ))}
+                  {state.lapRecords.slice(-5).map((lap, i) => (
+                    <div key={`lap-${i}`} className="flex items-center gap-2">
+                      <span className="text-[#888] text-[10px] font-['Roboto_Mono']">V{lap.bikeId}</span>
+                      <span className="font-semibold text-[#ddd] uppercase text-xs">{lap.scoutName}</span>
+                      <span className="font-['Roboto_Mono']" style={{ color: lap.bikeId === 1 ? BIKE1_COLOR : BIKE2_COLOR }}>
+                        {formatTimeFull(lap.lapTime)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
+
         </div>
 
       </main>
