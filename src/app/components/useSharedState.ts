@@ -1,10 +1,13 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { AppState } from "./types";
 import { INITIAL_BIKE_STATE, INITIAL_SCOUTS } from "./types";
 import { toast } from "sonner";
+import { db } from "../lib/firebase";
+import { ref, onValue, set } from "firebase/database";
 
 const STORAGE_KEY = "sp51_state";
 const CHANNEL_NAME = "sp51_sync";
+const FIREBASE_PATH = "sp51/state";
 
 function loadState(): AppState {
   const defaults: AppState = {
@@ -42,8 +45,10 @@ function saveState(state: AppState) {
 
 export function useSharedState(readonly = false) {
   const [state, setState] = useState<AppState>(loadState);
+  // Track if this tab is currently writing to Firebase to avoid echo
+  const isWritingRef = useRef(false);
 
-  // Broadcast channel for cross-tab sync
+  // Broadcast channel for cross-tab sync (same device)
   useEffect(() => {
     const channel = new BroadcastChannel(CHANNEL_NAME);
     channel.onmessage = (event) => {
@@ -54,7 +59,7 @@ export function useSharedState(readonly = false) {
     return () => channel.close();
   }, []);
 
-  // Also listen to storage events for cross-origin tabs
+  // Listen to storage events for cross-origin tabs (same device)
   useEffect(() => {
     const handler = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY && e.newValue) {
@@ -67,9 +72,41 @@ export function useSharedState(readonly = false) {
     return () => window.removeEventListener("storage", handler);
   }, []);
 
-  // For spectator: poll localStorage every 500ms for updates
+  // Firebase real-time sync (multi-device)
   useEffect(() => {
-    if (!readonly) return;
+    if (!db) return;
+    const stateRef = ref(db, FIREBASE_PATH);
+    const unsubscribe = onValue(stateRef, (snapshot) => {
+      // Skip if we just wrote this value ourselves
+      if (isWritingRef.current) return;
+      const data = snapshot.val();
+      if (data) {
+        const defaults: AppState = {
+          scouts: INITIAL_SCOUTS,
+          bike1: INITIAL_BIKE_STATE,
+          bike2: INITIAL_BIKE_STATE,
+          lapRecords: [],
+          eventStartTime: Date.now(),
+          commentary: [],
+          lapFlags: {},
+          raceStarted: true,
+        };
+        const merged = { ...defaults, ...data };
+        setState(merged);
+        saveState(merged);
+        try {
+          const channel = new BroadcastChannel(CHANNEL_NAME);
+          channel.postMessage({ type: "state_update", state: merged });
+          channel.close();
+        } catch {}
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // For spectator without Firebase: poll localStorage every 500ms
+  useEffect(() => {
+    if (!readonly || db) return;
     const interval = setInterval(() => {
       setState(loadState());
     }, 500);
@@ -80,11 +117,22 @@ export function useSharedState(readonly = false) {
     setState((prev) => {
       const next = updater(prev);
       saveState(next);
+      // Broadcast to same-device tabs
       try {
         const channel = new BroadcastChannel(CHANNEL_NAME);
         channel.postMessage({ type: "state_update", state: next });
         channel.close();
       } catch {}
+      // Push to Firebase for multi-device sync
+      if (db) {
+        isWritingRef.current = true;
+        set(ref(db, FIREBASE_PATH), next)
+          .catch(() => {})
+          .finally(() => {
+            // Give onValue a moment to fire before we start listening again
+            setTimeout(() => { isWritingRef.current = false; }, 200);
+          });
+      }
       return next;
     });
   }, []);
