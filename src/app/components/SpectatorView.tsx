@@ -251,7 +251,7 @@ export function SpectatorView() {
                   1
                 </div>
                 <span className="text-sm font-bold text-[#ccc] tracking-widest uppercase">
-                  Ungava
+                  Vélo 1
                 </span>
               </div>
               <div className="text-right">
@@ -286,7 +286,7 @@ export function SpectatorView() {
                   2
                 </div>
                 <span className="text-sm font-bold text-[#ccc] tracking-widest uppercase">
-                  Argapura
+                  Vélo 2
                 </span>
               </div>
               <div className="text-right">
@@ -386,12 +386,7 @@ export function SpectatorView() {
                 {showQR ? "Masquer QR" : "QR Code"}
               </button>
             </div>
-            {showQR && (
-              <div className="flex justify-center mb-3 p-3 bg-white rounded">
-                <QRCode value={window.location.href} size={120} />
-              </div>
-            )}
-            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
               <code className="flex-1 text-[10px] font-['Roboto_Mono'] text-[#aaa] bg-[#111] border border-[#222] rounded px-2 py-1.5 truncate">
                 {window.location.href}
               </code>
@@ -470,13 +465,9 @@ export function SpectatorView() {
                       >
                         {/* Position */}
                         <div className="text-center py-2.5">
-                          {podiumColor ? (
-                            <span className="font-['Roboto_Mono'] font-bold text-[11px]" style={{ color: podiumColor }}>
-                              {i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉"}
-                            </span>
-                          ) : (
-                            <span className="font-['Roboto_Mono'] text-[#555] text-[10px]">{i + 1}</span>
-                          )}
+                          <span className="font-['Roboto_Mono'] font-bold text-[11px]" style={{ color: podiumColor ?? "#555" }}>
+                            {i + 1}
+                          </span>
                         </div>
 
                         {/* Name */}
@@ -591,7 +582,7 @@ export function SpectatorView() {
                   rightTab === "leaderboard" ? "bg-[#111] text-[#fff]" : "bg-[#080808] text-[#555] hover:text-[#888]"
                 }`}
               >
-                🏆 Classement
+                Classement
               </button>
               <button
                 onClick={() => { setRightTab("chat"); setUnreadChat(0); setLastSeenChatCount(chatMessages.length); }}
@@ -599,7 +590,7 @@ export function SpectatorView() {
                   rightTab === "chat" ? "bg-[#111] text-[#fff]" : "bg-[#080808] text-[#555] hover:text-[#888]"
                 }`}
               >
-                💬 Chat
+                Chat
                 {unreadChat > 0 && (
                   <span className="bg-[#ef4444] text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full min-w-[16px] text-center">
                     {unreadChat > 9 ? "9+" : unreadChat}
@@ -640,6 +631,25 @@ export function SpectatorView() {
         </div>
 
       </main>
+
+      {/* QR Code Modal */}
+      {showQR && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+          onClick={() => setShowQR(false)}
+        >
+          <div className="bg-white rounded-lg p-6 flex flex-col items-center gap-3 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <QRCode value={window.location.href} size={200} />
+            <p className="text-black text-xs font-['Roboto_Mono'] text-center max-w-[200px] break-all">{window.location.href}</p>
+            <button
+              onClick={() => setShowQR(false)}
+              className="text-[11px] uppercase tracking-widest text-[#666] hover:text-black transition-colors"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes marquee {
