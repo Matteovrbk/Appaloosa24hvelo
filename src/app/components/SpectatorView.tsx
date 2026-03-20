@@ -146,18 +146,6 @@ export function SpectatorView() {
     }
   };
 
-  if (!state.raceStarted) {
-    return (
-      <div className="min-h-screen bg-[#050505] text-[#eee] flex flex-col items-center justify-center font-['Inter']">
-        <div className="text-center space-y-4">
-          <div className="w-3 h-3 rounded-full bg-[#e11d48] mx-auto animate-pulse" />
-          <div className="text-xs uppercase tracking-[0.3em] text-[#555]">Course non démarrée</div>
-          <div className="text-[#333] text-sm font-['Roboto_Mono']">En attente de l'opérateur...</div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-[#050505] text-[#eee] overflow-hidden font-['Inter'] selection:bg-[#333]">
       {/* Top Timing Bar */}
