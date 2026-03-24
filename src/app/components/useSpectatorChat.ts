@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { db } from "../lib/firebase";
-import { ref, push, onValue, query, limitToLast } from "firebase/database";
+import { ref, push, onValue, query, limitToLast, remove } from "firebase/database";
 
 export interface ChatMessage {
   id: string;
@@ -40,5 +40,10 @@ export function useSpectatorChat() {
     });
   }, []);
 
-  return { messages, sendMessage, isConnected: !!db };
+  const deleteMessage = useCallback((id: string) => {
+    if (!db) return;
+    remove(ref(db, `${CHAT_PATH}/${id}`));
+  }, []);
+
+  return { messages, sendMessage, deleteMessage, isConnected: !!db };
 }

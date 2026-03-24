@@ -31,6 +31,7 @@ import { BikeQueue } from "./BikeQueue";
 import { CircuitSVG } from "./CircuitSVG";
 import { Leaderboard } from "./Leaderboard";
 import { ScoutManager } from "./ScoutManager";
+import { useSpectatorChat } from "./useSpectatorChat";
 import { useSharedState } from "./useSharedState";
 import { AdminLogin, isAdminAuthenticated, logoutAdmin } from "./AdminLogin";
 import { toast, Toaster } from "sonner";
@@ -104,6 +105,8 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
   const [showEventSetup, setShowEventSetup] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
   const [selectedScoutHistory, setSelectedScoutHistory] = useState<string | null>(null);
+  const { messages: chatMessages, deleteMessage: deleteChatMessage } = useSpectatorChat();
+  const [showChatMod, setShowChatMod] = useState(false);
   const [editingLapTs, setEditingLapTs] = useState<number | null>(null);
   const [editLapVal, setEditLapVal] = useState("");
   const [commentText, setCommentText] = useState("");
@@ -1072,6 +1075,61 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
           >
             Envoyer
           </button>
+        </div>
+
+        {/* ── Chat modération ──────────────────────────────── */}
+        <div className="bg-[#111] rounded-md border border-[#222] overflow-hidden">
+          <button
+            onClick={() => setShowChatMod((v) => !v)}
+            className="w-full flex items-center justify-between px-4 py-2.5 bg-[#151515] hover:bg-[#1a1a1a] transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-3.5 h-3.5 text-[#888]" />
+              <span className="text-[10px] uppercase tracking-widest font-bold text-[#888]">Chat Spectateurs</span>
+              {chatMessages.length > 0 && (
+                <span className="bg-[#222] border border-[#333] rounded px-1.5 py-0.5 text-[9px] font-['Roboto_Mono'] text-[#aaa]">
+                  {chatMessages.length}
+                </span>
+              )}
+            </div>
+            <span className="text-[9px] text-[#555] uppercase tracking-widest">{showChatMod ? "Masquer" : "Modérer"}</span>
+          </button>
+
+          {showChatMod && (
+            <div className="p-3">
+              {chatMessages.length === 0 ? (
+                <div className="text-center py-6 text-[10px] text-[#555] uppercase tracking-widest font-['Roboto_Mono']">
+                  Aucun message
+                </div>
+              ) : (
+                <div className="space-y-1 max-h-[320px] overflow-y-auto custom-scrollbar pr-1">
+                  {[...chatMessages].reverse().map((msg) => (
+                    <div
+                      key={msg.id}
+                      className="group flex items-start gap-2 px-3 py-2 bg-[#0a0a0a] border border-[#222] rounded hover:border-[#444] transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-baseline gap-2 mb-0.5">
+                          <span className="text-[10px] font-bold text-[#e2a03f] truncate">{msg.author}</span>
+                          <span className="text-[9px] text-[#555] font-['Roboto_Mono'] shrink-0">
+                            {new Date(msg.timestamp).toLocaleTimeString("fr-BE")}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-[#ccc] leading-snug break-words">{msg.text}</p>
+                      </div>
+                      <button
+                        onClick={() => deleteChatMessage(msg.id)}
+                        className="shrink-0 p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-900/40 rounded text-[#888] hover:text-red-400"
+                        title="Supprimer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* ── Charts ───────────────────────────────────────── */}
