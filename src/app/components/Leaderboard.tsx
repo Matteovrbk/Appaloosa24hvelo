@@ -11,9 +11,9 @@ interface LeaderboardProps {
 type FilterMode = "all" | "bike1" | "bike2";
 
 const FILTERS: { key: FilterMode; label: string; color: string }[] = [
-  { key: "all",   label: "Tous",   color: "#888"      },
-  { key: "bike1", label: "Vélo 1", color: BIKE1_COLOR },
-  { key: "bike2", label: "Vélo 2", color: BIKE2_COLOR },
+  { key: "all",   label: "Tous",      color: "#888"      },
+  { key: "bike1", label: "Appaloosa", color: BIKE1_COLOR },
+  { key: "bike2", label: "Archango",  color: BIKE2_COLOR },
 ];
 
 export function Leaderboard({ lapRecords, scouts }: LeaderboardProps) {
@@ -77,7 +77,7 @@ export function Leaderboard({ lapRecords, scouts }: LeaderboardProps) {
     }))
     .sort((a, b) => a.avg - b.avg);
 
-  const bikeLabel = (bikeId: 1 | 2) => `Vélo ${bikeId}`;
+  const bikeLabel = (bikeId: 1 | 2) => bikeId === 1 ? "Appaloosa" : "Archango";
   const bikeColor = (bikeId: 1 | 2) => (bikeId === 1 ? BIKE1_COLOR : BIKE2_COLOR);
 
   return (

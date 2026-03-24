@@ -11,6 +11,9 @@ import {
   BarChart3,
   X,
   MessageSquare,
+  Pencil,
+  Trash2,
+  Check,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import {
@@ -101,6 +104,8 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
   const [showEventSetup, setShowEventSetup] = useState(false);
   const [showCharts, setShowCharts] = useState(false);
   const [selectedScoutHistory, setSelectedScoutHistory] = useState<string | null>(null);
+  const [editingLapTs, setEditingLapTs] = useState<number | null>(null);
+  const [editLapVal, setEditLapVal] = useState("");
   const [commentText, setCommentText] = useState("");
   const [soundEnabled, setSoundEnabled] = useState(true);
 
@@ -431,6 +436,22 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
       scouts: prev.scouts.map((s) => (s.id === id ? { ...s, ...patch } : s)),
     }));
   };
+  const handleDeleteLap = (timestamp: number) => {
+    updateState((prev) => ({ ...prev, lapRecords: prev.lapRecords.filter((r) => r.timestamp !== timestamp) }));
+  };
+  const handleEditLap = (timestamp: number, newTimeStr: string) => {
+    const [minsStr, secsStr] = newTimeStr.split(":");
+    const mins = parseInt(minsStr, 10);
+    const secs = parseInt(secsStr ?? "0", 10);
+    if (isNaN(mins) || isNaN(secs)) return;
+    const newTime = mins * 60 + secs;
+    if (newTime <= 0) return;
+    updateState((prev) => ({
+      ...prev,
+      lapRecords: prev.lapRecords.map((r) => r.timestamp === timestamp ? { ...r, lapTime: newTime } : r),
+    }));
+    setEditingLapTs(null);
+  };
   const handleRemoveScout = (id: string) => {
     if (
       state.bike1.currentRiderId === id ||
@@ -731,22 +752,52 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
                 return scoutHistoryData.map((r, i) => (
                   <div
                     key={i}
-                    className="flex items-center justify-between px-3 py-1.5 bg-[#0a0a0a] border border-[#222] rounded text-[11px]"
+                    className="group flex items-center gap-2 px-3 py-1.5 bg-[#0a0a0a] border border-[#222] rounded text-[11px] hover:border-[#444]"
                   >
-                    <span className="font-['Roboto_Mono'] text-[#888]">
+                    <span className="font-['Roboto_Mono'] text-[#888] w-16 shrink-0">
                       {new Date(r.timestamp).toLocaleTimeString("fr-BE")}
                     </span>
                     <span
-                      className="px-1.5 py-0.5 rounded text-[9px] font-bold font-['Roboto_Mono'] text-black"
+                      className="px-1.5 py-0.5 rounded text-[9px] font-bold font-['Roboto_Mono'] text-black shrink-0"
                       style={{ backgroundColor: r.bikeId === 1 ? BIKE1_COLOR : BIKE2_COLOR }}
                     >
-                      V{r.bikeId}
+                      {r.bikeId === 1 ? "APP" : "ARC"}
                     </span>
-                    <span
-                      className={`font-['Roboto_Mono'] font-bold ${r.lapTime === best ? "text-[#a855f7]" : "text-[#22c55e]"}`}
-                    >
-                      {formatTimeFull(r.lapTime)}
-                    </span>
+                    {editingLapTs === r.timestamp ? (
+                      <div className="flex items-center gap-1 flex-1">
+                        <input
+                          autoFocus
+                          value={editLapVal}
+                          onChange={(e) => setEditLapVal(e.target.value)}
+                          onKeyDown={(e) => { if (e.key === "Enter") handleEditLap(r.timestamp, editLapVal); if (e.key === "Escape") setEditingLapTs(null); }}
+                          className="w-20 px-2 py-0.5 bg-[#1a1a1a] border border-[#555] rounded font-['Roboto_Mono'] text-white text-[11px] outline-none"
+                          placeholder="mm:ss"
+                        />
+                        <button onClick={() => handleEditLap(r.timestamp, editLapVal)} className="p-1 hover:bg-[#22c55e]/20 rounded text-[#22c55e]">
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => setEditingLapTs(null)} className="p-1 hover:bg-[#333] rounded text-[#888]">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <span className={`font-['Roboto_Mono'] font-bold flex-1 ${r.lapTime === best ? "text-[#a855f7]" : "text-[#22c55e]"}`}>
+                          {formatTimeFull(r.lapTime)}
+                        </span>
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => { setEditingLapTs(r.timestamp); setEditLapVal(`${Math.floor(r.lapTime / 60).toString().padStart(2, "0")}:${Math.floor(r.lapTime % 60).toString().padStart(2, "0")}`); }}
+                            className="p-1 hover:bg-[#333] rounded text-[#888] hover:text-white"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                          <button onClick={() => handleDeleteLap(r.timestamp)} className="p-1 hover:bg-red-900/40 rounded text-[#888] hover:text-red-400">
+                            <Trash2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 ));
               })()}
@@ -1134,7 +1185,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
                           className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-[#000] font-bold font-['Roboto_Mono'] text-[9px]"
                           style={{ backgroundColor: record.bikeId === 1 ? BIKE1_COLOR : BIKE2_COLOR }}
                         >
-                          V{record.bikeId}
+                          {record.bikeId === 1 ? "APP" : "ARC"}
                         </span>
                       </td>
                       <td className="py-2 px-4 font-['Roboto_Mono'] text-right text-[#22c55e]">

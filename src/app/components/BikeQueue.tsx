@@ -94,7 +94,7 @@ export function BikeQueue({
   }, []);
 
   return (
-    <div className="bg-[#111] rounded-md border border-[#222] overflow-hidden flex flex-col font-['Inter']">
+    <div className="bg-[#111] rounded-md border border-[#222] overflow-hidden flex flex-col font-['Inter'] min-h-[540px]">
       {/* Header */}
       <div
         className="px-4 py-2 flex items-center gap-2 border-b-2"
