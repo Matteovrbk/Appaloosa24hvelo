@@ -22,7 +22,7 @@ export function SpectatorView() {
   const [bike1MapPos] = useState(0);
   const [bike2MapPos] = useState(0);
   const [flashLap, setFlashLap] = useState<LapRecord | null>(null);
-  const [spectatorFilter, setSpectatorFilter] = useState<"all" | "bike1" | "bike2">("all");
+  const [spectatorFilter, setSpectatorFilter] = useState<"bike1" | "bike2">("bike1");
   const [rightTab, setRightTab] = useState<"leaderboard" | "chat">("leaderboard");
   const [unreadChat, setUnreadChat] = useState(0);
   const [lastSeenChatCount, setLastSeenChatCount] = useState(0);
@@ -96,7 +96,6 @@ export function SpectatorView() {
     state.bike2.lapStartTime !== null ? currentTime - state.bike2.lapStartTime : 0;
 
   const SPECTATOR_FILTERS = [
-    { key: "all" as const,   label: "TOUS",      color: "#888"      },
     { key: "bike1" as const, label: "APPALOOSA", color: BIKE1_COLOR },
     { key: "bike2" as const, label: "ARCHANGO",  color: BIKE2_COLOR },
   ];
