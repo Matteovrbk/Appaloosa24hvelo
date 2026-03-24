@@ -244,7 +244,7 @@ export function BikeQueue({
           {showDropdown && (searchText.length > 0 || document.activeElement === searchRef.current) && (
             <div
               ref={dropdownRef}
-              className="absolute top-full left-0 right-0 z-50 mt-1 bg-[#1a1a1a] border border-[#333] rounded shadow-xl max-h-[200px] overflow-y-auto custom-scrollbar"
+              className="absolute top-full left-0 right-0 z-50 mt-1 bg-[#1a1a1a] border border-[#333] rounded shadow-xl max-h-[360px] overflow-y-auto custom-scrollbar"
             >
               {filteredScouts.length === 0 ? (
                 <div className="px-3 py-2 text-[10px] text-[#555] uppercase tracking-widest">

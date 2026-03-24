@@ -425,6 +425,12 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
     updateState((prev) => ({ ...prev, scouts: [...prev.scouts, ...newScouts] }));
     toast.success(`${newScouts.length} personnes importées`);
   };
+  const handleUpdateScout = (id: string, patch: Partial<Pick<Scout, "name" | "role">>) => {
+    updateState((prev) => ({
+      ...prev,
+      scouts: prev.scouts.map((s) => (s.id === id ? { ...s, ...patch } : s)),
+    }));
+  };
   const handleRemoveScout = (id: string) => {
     if (
       state.bike1.currentRiderId === id ||
@@ -912,6 +918,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
               scouts={state.scouts}
               onAddScout={handleAddScout}
               onRemoveScout={handleRemoveScout}
+              onUpdateScout={handleUpdateScout}
               onImportScouts={handleImportScouts}
             />
           </div>

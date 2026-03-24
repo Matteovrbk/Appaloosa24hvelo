@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { UserPlus, Trash2, Upload, FileSpreadsheet, X, Shield, Users } from "lucide-react";
+import { UserPlus, Trash2, Upload, FileSpreadsheet, X, Shield, Users, Pencil, Check } from "lucide-react";
 import * as XLSX from "xlsx";
 import type { Scout } from "./types";
 
@@ -7,15 +7,30 @@ interface ScoutManagerProps {
   scouts: Scout[];
   onAddScout: (scout: Scout) => void;
   onRemoveScout: (id: string) => void;
+  onUpdateScout: (id: string, patch: Partial<Pick<Scout, "name" | "role">>) => void;
   onImportScouts: (scouts: Scout[]) => void;
 }
 
-export function ScoutManager({ scouts, onAddScout, onRemoveScout, onImportScouts }: ScoutManagerProps) {
+export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout, onImportScouts }: ScoutManagerProps) {
   const [name, setName] = useState("");
   const [troupe, setTroupe] = useState<"Appaloosa">("Appaloosa");
   const [role, setRole] = useState<"scout" | "animateur">("scout");
   const [isDragging, setIsDragging] = useState(false);
   const [importPreview, setImportPreview] = useState<Scout[] | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editRole, setEditRole] = useState<"scout" | "animateur">("scout");
+
+  const startEdit = (s: Scout) => {
+    setEditingId(s.id);
+    setEditName(s.name);
+    setEditRole(s.role);
+  };
+
+  const commitEdit = (id: string) => {
+    if (editName.trim()) onUpdateScout(id, { name: editName.trim(), role: editRole });
+    setEditingId(null);
+  };
 
   const handleAdd = () => {
     if (!name.trim()) return;
@@ -100,31 +115,57 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onImportScouts
     }
   };
 
-  const ScoutRow = ({ s }: { s: Scout }) => (
-    <div
-      className="flex items-center justify-between px-2 py-1.5 bg-[#151515] border border-[#222] rounded group hover:border-[#333]"
-    >
-      <div className="flex items-center gap-2 min-w-0">
-        <span className="text-[11px] font-bold text-[#ddd] uppercase truncate">{s.name}</span>
-        <span
-          className="text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded font-bold font-['Roboto_Mono'] shrink-0"
-          style={{
-            color: "#1a5fa8",
-            backgroundColor: "rgba(26,95,168,0.1)",
-            border: "1px solid rgba(26,95,168,0.2)",
-          }}
-        >
-          {s.troupe.substring(0, 3)}
-        </span>
+  const ScoutRow = ({ s }: { s: Scout }) => {
+    const isEditing = editingId === s.id;
+    if (isEditing) {
+      return (
+        <div className="flex items-center gap-1.5 px-2 py-1 bg-[#1a1a1a] border border-[#444] rounded">
+          <input
+            autoFocus
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") commitEdit(s.id); if (e.key === "Escape") setEditingId(null); }}
+            className="flex-1 min-w-0 bg-transparent text-[11px] font-bold text-[#eee] uppercase outline-none border-b border-[#555] focus:border-[#22c55e] pb-0.5"
+          />
+          <select
+            value={editRole}
+            onChange={(e) => setEditRole(e.target.value as "scout" | "animateur")}
+            className="bg-[#222] border border-[#333] text-[9px] text-[#ccc] uppercase rounded px-1 py-0.5 outline-none"
+          >
+            <option value="scout">Scout</option>
+            <option value="animateur">Anim</option>
+          </select>
+          <button onClick={() => commitEdit(s.id)} className="text-[#22c55e] hover:text-[#4ade80]">
+            <Check className="w-3.5 h-3.5" />
+          </button>
+          <button onClick={() => setEditingId(null)} className="text-[#555] hover:text-[#aaa]">
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      );
+    }
+    return (
+      <div className="flex items-center justify-between px-2 py-1.5 bg-[#151515] border border-[#222] rounded hover:border-[#333]">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-[11px] font-bold text-[#ddd] uppercase truncate">{s.name}</span>
+          <span
+            className="text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded font-bold font-['Roboto_Mono'] shrink-0"
+            style={{ color: "#1a5fa8", backgroundColor: "rgba(26,95,168,0.1)", border: "1px solid rgba(26,95,168,0.2)" }}
+          >
+            {s.troupe.substring(0, 3)}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <button onClick={() => startEdit(s)} className="text-[#555] hover:text-[#eab308] transition-colors p-0.5">
+            <Pencil className="w-3 h-3" />
+          </button>
+          <button onClick={() => onRemoveScout(s.id)} className="text-[#555] hover:text-[#ef4444] transition-colors p-0.5">
+            <Trash2 className="w-3 h-3" />
+          </button>
+        </div>
       </div>
-      <button
-        onClick={() => onRemoveScout(s.id)}
-        className="text-[#555] hover:text-[#ef4444] transition-colors opacity-0 group-hover:opacity-100"
-      >
-        <Trash2 className="w-3.5 h-3.5" />
-      </button>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="bg-[#111] border border-[#222] rounded-md p-4 space-y-4 font-['Inter'] shadow-lg">
