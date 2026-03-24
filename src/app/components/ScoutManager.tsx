@@ -11,6 +11,76 @@ interface ScoutManagerProps {
   onImportScouts: (scouts: Scout[]) => void;
 }
 
+interface ScoutRowProps {
+  s: Scout;
+  editingId: string | null;
+  editName: string;
+  editRole: "scout" | "animateur";
+  onStartEdit: (s: Scout) => void;
+  onCommitEdit: (id: string) => void;
+  onCancelEdit: () => void;
+  onEditName: (v: string) => void;
+  onEditRole: (v: "scout" | "animateur") => void;
+  onRemove: (id: string) => void;
+}
+
+function ScoutRow({ s, editingId, editName, editRole, onStartEdit, onCommitEdit, onCancelEdit, onEditName, onEditRole, onRemove }: ScoutRowProps) {
+  const isEditing = editingId === s.id;
+
+  if (isEditing) {
+    return (
+      <div className="flex items-center gap-1.5 px-2 py-1 bg-[#1a1a1a] border border-[#444] rounded">
+        <input
+          autoFocus
+          value={editName}
+          onChange={(e) => onEditName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onCommitEdit(s.id);
+            if (e.key === "Escape") onCancelEdit();
+          }}
+          className="flex-1 min-w-0 bg-transparent text-[11px] font-bold text-[#eee] uppercase outline-none border-b border-[#555] focus:border-[#22c55e] pb-0.5"
+        />
+        <select
+          value={editRole}
+          onChange={(e) => onEditRole(e.target.value as "scout" | "animateur")}
+          className="bg-[#222] border border-[#333] text-[9px] text-[#ccc] uppercase rounded px-1 py-0.5 outline-none"
+        >
+          <option value="scout">Scout</option>
+          <option value="animateur">Anim</option>
+        </select>
+        <button onClick={() => onCommitEdit(s.id)} className="text-[#22c55e] hover:text-[#4ade80]">
+          <Check className="w-3.5 h-3.5" />
+        </button>
+        <button onClick={onCancelEdit} className="text-[#555] hover:text-[#aaa]">
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center justify-between px-2 py-1.5 bg-[#151515] border border-[#222] rounded hover:border-[#333]">
+      <div className="flex items-center gap-2 min-w-0">
+        <span className="text-[11px] font-bold text-[#ddd] uppercase truncate">{s.name}</span>
+        <span
+          className="text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded font-bold font-['Roboto_Mono'] shrink-0"
+          style={{ color: "#1a5fa8", backgroundColor: "rgba(26,95,168,0.1)", border: "1px solid rgba(26,95,168,0.2)" }}
+        >
+          {s.troupe.substring(0, 3)}
+        </span>
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <button onClick={() => onStartEdit(s)} className="text-[#555] hover:text-[#eab308] transition-colors p-0.5">
+          <Pencil className="w-3 h-3" />
+        </button>
+        <button onClick={() => onRemove(s.id)} className="text-[#555] hover:text-[#ef4444] transition-colors p-0.5">
+          <Trash2 className="w-3 h-3" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout, onImportScouts }: ScoutManagerProps) {
   const [name, setName] = useState("");
   const [troupe, setTroupe] = useState<"Appaloosa">("Appaloosa");
@@ -34,12 +104,7 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout,
 
   const handleAdd = () => {
     if (!name.trim()) return;
-    onAddScout({
-      id: crypto.randomUUID(),
-      name: name.trim(),
-      troupe,
-      role,
-    });
+    onAddScout({ id: crypto.randomUUID(), name: name.trim(), troupe, role });
     setName("");
   };
 
@@ -67,19 +132,12 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout,
           })
           .map((row) => {
             const nom = (row["Nom"] || row["nom"] || row["Name"] || row["name"] || row["NOM"] || "").trim();
-            const rawTroupe = (row["Troupe"] || row["troupe"] || row["TROUPE"] || row["Groupe"] || row["groupe"] || "").trim().toLowerCase();
             const rawRole = (row["Role"] || row["role"] || row["Rôle"] || row["rôle"] || row["ROLE"] || row["Type"] || row["type"] || "").trim().toLowerCase();
-
-            const troupe: "Appaloosa" = "Appaloosa";
-            const role: "scout" | "animateur" =
-              rawRole.includes("anim") ? "animateur" : "scout";
-
-            return { id: crypto.randomUUID(), name: nom, troupe, role };
+            const role: "scout" | "animateur" = rawRole.includes("anim") && !rawRole.includes("animé") ? "animateur" : "scout";
+            return { id: crypto.randomUUID(), name: nom, troupe: "Appaloosa", role };
           });
 
-        if (parsed.length > 0) {
-          setImportPreview(parsed);
-        }
+        if (parsed.length > 0) setImportPreview(parsed);
       } catch {
         // Silent fail — invalid file
       }
@@ -115,56 +173,16 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout,
     }
   };
 
-  const ScoutRow = ({ s }: { s: Scout }) => {
-    const isEditing = editingId === s.id;
-    if (isEditing) {
-      return (
-        <div className="flex items-center gap-1.5 px-2 py-1 bg-[#1a1a1a] border border-[#444] rounded">
-          <input
-            autoFocus
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") commitEdit(s.id); if (e.key === "Escape") setEditingId(null); }}
-            className="flex-1 min-w-0 bg-transparent text-[11px] font-bold text-[#eee] uppercase outline-none border-b border-[#555] focus:border-[#22c55e] pb-0.5"
-          />
-          <select
-            value={editRole}
-            onChange={(e) => setEditRole(e.target.value as "scout" | "animateur")}
-            className="bg-[#222] border border-[#333] text-[9px] text-[#ccc] uppercase rounded px-1 py-0.5 outline-none"
-          >
-            <option value="scout">Scout</option>
-            <option value="animateur">Anim</option>
-          </select>
-          <button onClick={() => commitEdit(s.id)} className="text-[#22c55e] hover:text-[#4ade80]">
-            <Check className="w-3.5 h-3.5" />
-          </button>
-          <button onClick={() => setEditingId(null)} className="text-[#555] hover:text-[#aaa]">
-            <X className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      );
-    }
-    return (
-      <div className="flex items-center justify-between px-2 py-1.5 bg-[#151515] border border-[#222] rounded hover:border-[#333]">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="text-[11px] font-bold text-[#ddd] uppercase truncate">{s.name}</span>
-          <span
-            className="text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded font-bold font-['Roboto_Mono'] shrink-0"
-            style={{ color: "#1a5fa8", backgroundColor: "rgba(26,95,168,0.1)", border: "1px solid rgba(26,95,168,0.2)" }}
-          >
-            {s.troupe.substring(0, 3)}
-          </span>
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <button onClick={() => startEdit(s)} className="text-[#555] hover:text-[#eab308] transition-colors p-0.5">
-            <Pencil className="w-3 h-3" />
-          </button>
-          <button onClick={() => onRemoveScout(s.id)} className="text-[#555] hover:text-[#ef4444] transition-colors p-0.5">
-            <Trash2 className="w-3 h-3" />
-          </button>
-        </div>
-      </div>
-    );
+  const rowProps = {
+    editingId,
+    editName,
+    editRole,
+    onStartEdit: startEdit,
+    onCommitEdit: commitEdit,
+    onCancelEdit: () => setEditingId(null),
+    onEditName: setEditName,
+    onEditRole: setEditRole,
+    onRemove: onRemoveScout,
   };
 
   return (
@@ -188,10 +206,7 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout,
             {importPreview.map((s, i) => (
               <div key={i} className="flex items-center gap-2 px-2 py-1 bg-[#151515] border border-[#222] rounded text-[11px]">
                 <span className="font-bold text-[#ddd] uppercase flex-1 truncate">{s.name}</span>
-                <span
-                  className="text-[9px] uppercase px-1.5 py-0.5 rounded font-['Roboto_Mono']"
-                  style={{ color: "#1a5fa8" }}
-                >
+                <span className="text-[9px] uppercase px-1.5 py-0.5 rounded font-['Roboto_Mono']" style={{ color: "#1a5fa8" }}>
                   {s.troupe.substring(0, 3)}
                 </span>
                 <span
@@ -209,7 +224,7 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout,
               onClick={confirmImport}
               className="flex-1 px-4 py-2 bg-[#22c55e] text-black text-xs font-bold uppercase tracking-widest rounded hover:bg-[#16a34a] transition-colors"
             >
-              Confirmer l'import
+              Confirmer l&apos;import
             </button>
             <button
               onClick={() => setImportPreview(null)}
@@ -227,19 +242,11 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout,
         onDragLeave={() => setIsDragging(false)}
         onDrop={handleDrop}
         className={`border-2 border-dashed rounded-md p-4 text-center transition-all cursor-pointer ${
-          isDragging
-            ? "border-[#22c55e] bg-[#22c55e]/5"
-            : "border-[#333] hover:border-[#555]"
+          isDragging ? "border-[#22c55e] bg-[#22c55e]/5" : "border-[#333] hover:border-[#555]"
         }`}
         onClick={() => document.getElementById("excel-input")?.click()}
       >
-        <input
-          id="excel-input"
-          type="file"
-          accept=".xlsx,.xls,.csv"
-          onChange={handleFileInput}
-          className="hidden"
-        />
+        <input id="excel-input" type="file" accept=".xlsx,.xls,.csv" onChange={handleFileInput} className="hidden" />
         <Upload className={`w-5 h-5 mx-auto mb-2 ${isDragging ? "text-[#22c55e]" : "text-[#555]"}`} />
         <div className={`text-[10px] uppercase tracking-widest font-bold ${isDragging ? "text-[#22c55e]" : "text-[#666]"}`}>
           Glisser un fichier Excel ici ou cliquer pour importer
@@ -295,9 +302,7 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout,
             <span className="text-[10px] text-[#555] font-['Roboto_Mono']">{animateurs.length} TOTAL</span>
           </div>
           <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-            {animateurs.map((s) => (
-              <ScoutRow key={s.id} s={s} />
-            ))}
+            {animateurs.map((s) => <ScoutRow key={s.id} s={s} {...rowProps} />)}
             {animateurs.length === 0 && (
               <div className="text-[10px] uppercase tracking-widest font-['Roboto_Mono'] text-[#444] text-center py-4 border border-dashed border-[#222] rounded">
                 AUCUN ANIMATEUR
@@ -316,9 +321,7 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout,
             <span className="text-[10px] text-[#555] font-['Roboto_Mono']">{scoutsList.length} TOTAL</span>
           </div>
           <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-            {scoutsList.map((s) => (
-              <ScoutRow key={s.id} s={s} />
-            ))}
+            {scoutsList.map((s) => <ScoutRow key={s.id} s={s} {...rowProps} />)}
             {scoutsList.length === 0 && (
               <div className="text-[10px] uppercase tracking-widest font-['Roboto_Mono'] text-[#444] text-center py-4 border border-dashed border-[#222] rounded">
                 AUCUN SCOUT
@@ -329,16 +332,9 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout,
       </div>
 
       <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #333;
-          border-radius: 4px;
-        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
       `}</style>
     </div>
   );
