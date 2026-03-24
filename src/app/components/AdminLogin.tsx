@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { ShieldCheck, Lock, AlertTriangle } from "lucide-react";
 
 // Mot de passe admin — à changer selon vos besoins
-const ADMIN_PASSWORD = "AurelieLaPlusBelle";
+const ADMIN_PASSWORD = "conconbre";
 
 const AUTH_KEY = "appaloosa66_admin_auth";
 
