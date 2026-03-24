@@ -14,6 +14,7 @@ import { formatTimeShort } from "./types";
 
 interface BikeQueueProps {
   bikeId: 1 | 2;
+  troupeFilter: "Appaloosa" | "Archango";
   bikeState: BikeState;
   scouts: Scout[];
   onStartRide: () => void;
@@ -29,6 +30,7 @@ interface BikeQueueProps {
 
 export function BikeQueue({
   bikeId,
+  troupeFilter,
   bikeState,
   scouts,
   onStartRide,
@@ -51,10 +53,11 @@ export function BikeQueue({
     .map((id) => scouts.find((s) => s.id === id))
     .filter(Boolean) as Scout[];
 
-  // All scouts available (allow duplicates — same person can be queued multiple times)
+  // Animateurs can ride any bike; scouts only their own troupe's bike
   const filteredScouts = scouts.filter((s) =>
-    s.name.toLowerCase().includes(searchText.toLowerCase()) ||
-    s.troupe.toLowerCase().includes(searchText.toLowerCase())
+    (s.role === "animateur" || s.troupe === troupeFilter) &&
+    (s.name.toLowerCase().includes(searchText.toLowerCase()) ||
+     s.troupe.toLowerCase().includes(searchText.toLowerCase()))
   );
 
   const elapsedTime =
@@ -104,7 +107,7 @@ export function BikeQueue({
           {bikeId}
         </div>
         <h2 className="text-white text-xs font-bold uppercase tracking-widest m-0">
-          Vélo {bikeId}
+          {troupeFilter}
         </h2>
         <div className="ml-auto bg-[#222] border border-[#333] rounded px-2 py-0.5 text-[#aaa] text-[10px] font-['Roboto_Mono']">
           TOURS: <span className="text-white font-bold">{bikeState.totalLaps}</span>

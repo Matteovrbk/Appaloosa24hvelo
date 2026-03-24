@@ -96,15 +96,14 @@ export function SpectatorView() {
     state.bike2.lapStartTime !== null ? currentTime - state.bike2.lapStartTime : 0;
 
   const SPECTATOR_FILTERS = [
-    { key: "all" as const,   label: "TOUS",   color: "#888"      },
-    { key: "bike1" as const, label: "V1",     color: BIKE1_COLOR },
-    { key: "bike2" as const, label: "V2",     color: BIKE2_COLOR },
+    { key: "all" as const,   label: "TOUS",      color: "#888"      },
+    { key: "bike1" as const, label: "APPALOOSA", color: BIKE1_COLOR },
+    { key: "bike2" as const, label: "ARCHANGO",  color: BIKE2_COLOR },
   ];
 
   const filteredRecords = state.lapRecords.filter((r) => {
-    if (spectatorFilter === "bike1") return r.bikeId === 1;
-    if (spectatorFilter === "bike2") return r.bikeId === 2;
-    return true;
+    if (spectatorFilter === "bike1") return r.troupe === "Appaloosa";
+    if (spectatorFilter === "bike2") return r.troupe === "Archango";
     return true;
   });
 
@@ -148,7 +147,7 @@ export function SpectatorView() {
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-[#1a5fa8]" />
             <span className="text-[11px] font-bold tracking-widest text-[#fff] uppercase">
-              24hAppaloosa — Chronométrage Direct
+              Apparchango 66/77e — Chronométrage Direct
             </span>
           </div>
         </div>
@@ -250,7 +249,7 @@ export function SpectatorView() {
                   1
                 </div>
                 <span className="text-sm font-bold text-[#ccc] tracking-widest uppercase">
-                  Vélo 1
+                  Appaloosa
                 </span>
               </div>
               <div className="text-right">
@@ -285,7 +284,7 @@ export function SpectatorView() {
                   2
                 </div>
                 <span className="text-sm font-bold text-[#ccc] tracking-widest uppercase">
-                  Vélo 2
+                  Archango
                 </span>
               </div>
               <div className="text-right">
@@ -434,7 +433,7 @@ export function SpectatorView() {
               <div className="grid grid-cols-[30px_1fr_55px_80px_80px_55px] items-center text-[10px] uppercase tracking-widest text-[#666] bg-[#080808] border-b border-[#222] h-[28px]">
                 <div className="text-center">Pos</div>
                 <div className="px-2">Cycliste</div>
-                <div className="text-center">Vélo</div>
+                <div className="text-center">Troupe</div>
                 <div className="text-right pr-4">Meilleur</div>
                 <div className="text-right pr-4">Écart</div>
                 <div className="text-right pr-2">Tours</div>
@@ -452,7 +451,7 @@ export function SpectatorView() {
                     const gap = i === 0 ? "" : `+${formatTimeFull(entry.time - fastestLap)}`;
                     const podiumColors = ["#ffd700", "#c0c0c0", "#cd7f32"];
                     const podiumColor = i < 3 ? podiumColors[i] : null;
-                    const bikeColor = entry.bikeId === 1 ? BIKE1_COLOR : BIKE2_COLOR;
+                    const bikeColor = entry.troupe === "Appaloosa" ? BIKE1_COLOR : BIKE2_COLOR;
 
                     return (
                       <div
@@ -488,7 +487,7 @@ export function SpectatorView() {
                         {/* Bike */}
                         <div className="text-center py-2.5">
                           <span className="text-[9px] font-bold px-1.5 py-0.5 rounded" style={{ backgroundColor: bikeColor + "22", color: bikeColor }}>
-                            V{entry.bikeId}
+                            {entry.troupe === "Appaloosa" ? "APP" : "ARC"}
                           </span>
                         </div>
 
@@ -615,7 +614,7 @@ export function SpectatorView() {
                   ))}
                   {state.lapRecords.slice(-5).map((lap, i) => (
                     <div key={`lap-${i}`} className="flex items-center gap-2">
-                      <span className="text-[#888] text-[10px] font-['Roboto_Mono']">V{lap.bikeId}</span>
+                      <span className="text-[#888] text-[10px] font-['Roboto_Mono']">{lap.bikeId === 1 ? "APP" : "ARC"}</span>
                       <span className="font-semibold text-[#ddd] uppercase text-xs">{lap.scoutName}</span>
                       <span className="font-['Roboto_Mono']" style={{ color: lap.bikeId === 1 ? BIKE1_COLOR : BIKE2_COLOR }}>
                         {formatTimeFull(lap.lapTime)}

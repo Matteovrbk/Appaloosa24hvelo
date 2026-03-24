@@ -64,9 +64,11 @@ function ScoutRow({ s, editingId, editName, editRole, onStartEdit, onCommitEdit,
         <span className="text-[11px] font-bold text-[#ddd] uppercase truncate">{s.name}</span>
         <span
           className="text-[9px] uppercase tracking-widest px-1.5 py-0.5 rounded font-bold font-['Roboto_Mono'] shrink-0"
-          style={{ color: "#1a5fa8", backgroundColor: "rgba(26,95,168,0.1)", border: "1px solid rgba(26,95,168,0.2)" }}
+          style={s.role === "animateur"
+            ? { color: "#eab308", backgroundColor: "rgba(234,179,8,0.1)", border: "1px solid rgba(234,179,8,0.2)" }
+            : { color: "#888", backgroundColor: "rgba(136,136,136,0.1)", border: "1px solid rgba(136,136,136,0.15)" }}
         >
-          {s.troupe.substring(0, 3)}
+          {s.role === "animateur" ? "ANIM" : "SCOUT"}
         </span>
       </div>
       <div className="flex items-center gap-1 shrink-0">
@@ -83,7 +85,7 @@ function ScoutRow({ s, editingId, editName, editRole, onStartEdit, onCommitEdit,
 
 export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout, onImportScouts }: ScoutManagerProps) {
   const [name, setName] = useState("");
-  const [troupe, setTroupe] = useState<"Appaloosa">("Appaloosa");
+  const [troupe, setTroupe] = useState<"Appaloosa" | "Archango">("Appaloosa");
   const [role, setRole] = useState<"scout" | "animateur">("scout");
   const [isDragging, setIsDragging] = useState(false);
   const [importPreview, setImportPreview] = useState<Scout[] | null>(null);
@@ -112,8 +114,8 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout,
     if (e.key === "Enter") handleAdd();
   };
 
-  const animateurs = scouts.filter((s) => s.role === "animateur");
-  const scoutsList = scouts.filter((s) => s.role === "scout");
+  const appaloosaScouts = scouts.filter((s) => s.troupe === "Appaloosa");
+  const archangoScouts = scouts.filter((s) => s.troupe === "Archango");
 
   const parseExcelFile = useCallback((file: File) => {
     const reader = new FileReader();
@@ -133,8 +135,13 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout,
           .map((row) => {
             const nom = (row["Nom"] || row["nom"] || row["Name"] || row["name"] || row["NOM"] || "").trim();
             const rawRole = (row["Role"] || row["role"] || row["Rôle"] || row["rôle"] || row["ROLE"] || row["Type"] || row["type"] || "").trim().toLowerCase();
-            const role: "scout" | "animateur" = rawRole.includes("anim") && !rawRole.includes("animé") ? "animateur" : "scout";
-            return { id: crypto.randomUUID(), name: nom, troupe: "Appaloosa", role };
+            const rawTroupe = (row["Troupe"] || row["troupe"] || row["TROUPE"] || row["Groupe"] || row["groupe"] || "").trim().toLowerCase();
+            const role: "scout" | "animateur" =
+              (rawRole.includes("anim") && !rawRole.startsWith("animé")) || rawRole.includes("chef") || rawRole.includes("responsable")
+                ? "animateur"
+                : "scout";
+            const troupe: "Appaloosa" | "Archango" = rawTroupe.includes("archango") ? "Archango" : "Appaloosa";
+            return { id: crypto.randomUUID(), name: nom, troupe, role };
           });
 
         if (parsed.length > 0) setImportPreview(parsed);
@@ -268,10 +275,11 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout,
         />
         <select
           value={troupe}
-          onChange={(e) => setTroupe(e.target.value as "Appaloosa")}
+          onChange={(e) => setTroupe(e.target.value as "Appaloosa" | "Archango")}
           className="px-3 py-2 rounded bg-[#151515] border border-[#333] text-xs font-bold text-[#eee] uppercase outline-none focus:border-[#666]"
         >
           <option value="Appaloosa">APPALOOSA</option>
+          <option value="Archango">ARCHANGO</option>
         </select>
         <select
           value={role}
@@ -290,41 +298,41 @@ export function ScoutManager({ scouts, onAddScout, onRemoveScout, onUpdateScout,
         </button>
       </div>
 
-      {/* Lists: Animateurs + Scouts */}
+      {/* Lists: Appaloosa | Archango */}
       <div className="grid grid-cols-2 gap-4 pt-2 border-t border-[#222]">
-        {/* Animateurs */}
+        {/* Appaloosa */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1.5">
-              <Shield className="w-3.5 h-3.5 text-[#eab308]" />
-              <h3 className="text-xs uppercase tracking-widest font-bold text-[#eab308] m-0">Animateurs</h3>
+            <div className="flex items-center gap-2">
+              <img src="/logo-appaloosa.png" alt="" className="w-4 h-4 rounded-full object-cover" />
+              <h3 className="text-xs uppercase tracking-widest font-bold text-[#16a34a] m-0">Appaloosa</h3>
             </div>
-            <span className="text-[10px] text-[#555] font-['Roboto_Mono']">{animateurs.length} TOTAL</span>
+            <span className="text-[10px] text-[#555] font-['Roboto_Mono']">{appaloosaScouts.length} TOTAL</span>
           </div>
-          <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-            {animateurs.map((s) => <ScoutRow key={s.id} s={s} {...rowProps} />)}
-            {animateurs.length === 0 && (
+          <div className="space-y-1 max-h-52 overflow-y-auto custom-scrollbar pr-1">
+            {appaloosaScouts.map((s) => <ScoutRow key={s.id} s={s} {...rowProps} />)}
+            {appaloosaScouts.length === 0 && (
               <div className="text-[10px] uppercase tracking-widest font-['Roboto_Mono'] text-[#444] text-center py-4 border border-dashed border-[#222] rounded">
-                AUCUN ANIMATEUR
+                AUCUN MEMBRE
               </div>
             )}
           </div>
         </div>
 
-        {/* Scouts */}
+        {/* Archango */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5 text-[#888]" />
-              <h3 className="text-xs uppercase tracking-widest font-bold text-[#ccc] m-0">Scouts</h3>
+            <div className="flex items-center gap-2">
+              <img src="/logo-archango.jpg" alt="" className="w-4 h-4 rounded-full object-cover" />
+              <h3 className="text-xs uppercase tracking-widest font-bold text-[#ea580c] m-0">Archango</h3>
             </div>
-            <span className="text-[10px] text-[#555] font-['Roboto_Mono']">{scoutsList.length} TOTAL</span>
+            <span className="text-[10px] text-[#555] font-['Roboto_Mono']">{archangoScouts.length} TOTAL</span>
           </div>
-          <div className="space-y-1 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-            {scoutsList.map((s) => <ScoutRow key={s.id} s={s} {...rowProps} />)}
-            {scoutsList.length === 0 && (
+          <div className="space-y-1 max-h-52 overflow-y-auto custom-scrollbar pr-1">
+            {archangoScouts.map((s) => <ScoutRow key={s.id} s={s} {...rowProps} />)}
+            {archangoScouts.length === 0 && (
               <div className="text-[10px] uppercase tracking-widest font-['Roboto_Mono'] text-[#444] text-center py-4 border border-dashed border-[#222] rounded">
-                AUCUN SCOUT
+                AUCUN MEMBRE
               </div>
             )}
           </div>

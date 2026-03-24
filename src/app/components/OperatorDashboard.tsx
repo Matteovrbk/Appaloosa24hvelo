@@ -177,7 +177,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
   const totalDistance = (totalLaps * circuitKm).toFixed(1);
 
   // ── Bike operations ──────────────────────────────────────────
-  const createBikeOps = (bikeKey: "bike1" | "bike2", bikeId: 1 | 2) => ({
+  const createBikeOps = (bikeKey: "bike1" | "bike2", bikeId: 1 | 2, troupeName: string) => ({
     onStartRide: () => {
       const bike = state[bikeKey];
       if (bike.queue.length === 0) return;
@@ -192,7 +192,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
         },
       }));
       const scout = state.scouts.find((s) => s.id === nextId);
-      if (scout) toast.success(`${scout.name} démarre sur le Vélo ${bikeId}`);
+      if (scout) toast.success(`${scout.name} démarre sur ${troupeName}`);
     },
 
     onCountLap: () => {
@@ -286,7 +286,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
 
       if (scout && !isTooFast && !isTooSlow) {
         toast(`Tour: ${formatTimeFull(lapTime)}`, {
-          description: `${scout.name} - Vélo ${bikeId}`,
+          description: `${scout.name} - ${troupeName}`,
         });
       }
     },
@@ -349,7 +349,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
           const [nextId, ...rest] = currentBike.queue;
           const nextScout = prev.scouts.find((s) => s.id === nextId);
           if (nextScout) {
-            toast.success(`${nextScout.name} prend le relais sur le Vélo ${bikeId}`);
+            toast.success(`${nextScout.name} prend le relais sur ${troupeName}`);
           }
           return {
             ...prev,
@@ -367,7 +367,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
             commentary: newCommentary,
           };
         } else {
-          toast.info(`Vélo ${bikeId}: plus personne dans la file`);
+          toast.info(`${troupeName}: plus personne dans la file`);
           return {
             ...prev,
             [bikeKey]: {
@@ -412,8 +412,8 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
     },
   });
 
-  const bike1Ops = createBikeOps("bike1", 1);
-  const bike2Ops = createBikeOps("bike2", 2);
+  const bike1Ops = createBikeOps("bike1", 1, "Appaloosa");
+  const bike2Ops = createBikeOps("bike2", 2, "Archango");
   bike1OpsRef.current = bike1Ops;
   bike2OpsRef.current = bike2Ops;
 
@@ -760,15 +760,16 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
         <div className="max-w-[1800px] mx-auto flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-3">
             <img src="/logo-appaloosa.png" alt="Appaloosa 66" className="w-9 h-9 rounded-full object-cover" />
+            <img src="/logo-archango.jpg" alt="Archango 77" className="w-9 h-9 rounded-full object-cover" />
             <div className="bg-[#1a5fa8] text-white p-1.5 rounded-md shadow-[0_0_10px_rgba(26,95,168,0.5)]">
               <Settings2 className="w-5 h-5" />
             </div>
             <div>
               <h1 className="text-sm font-bold tracking-widest uppercase text-white m-0 leading-none">
-                {state.eventConfig?.eventName ?? "Contrôle de Course"}
+                24H VÉLO — APPARCHANGO
               </h1>
               <div className="text-[10px] uppercase tracking-widest text-[#888] mt-1">
-                KAPELLEVELD 66 &bull; APPALOOSA
+                APPARCHANGO - 66/77E &bull; KAPELLEVELD
               </div>
             </div>
           </div>
@@ -895,16 +896,16 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
       {/* Keyboard shortcuts bar */}
       <div className="bg-[#0a0a0a] border-b border-[#222] px-4 py-1 flex items-center justify-center gap-4 text-[9px] text-[#555] uppercase tracking-widest font-['Roboto_Mono']">
         <span>
-          <kbd className="text-[#888] bg-[#222] px-1 rounded">1</kbd> Tour V1
+          <kbd className="text-[#888] bg-[#222] px-1 rounded">1</kbd> Tour APP
         </span>
         <span>
-          <kbd className="text-[#888] bg-[#222] px-1 rounded">2</kbd> Tour V2
+          <kbd className="text-[#888] bg-[#222] px-1 rounded">2</kbd> Tour ARC
         </span>
         <span>
-          <kbd className="text-[#888] bg-[#222] px-1 rounded">N</kbd> Relais V1
+          <kbd className="text-[#888] bg-[#222] px-1 rounded">N</kbd> Relais APP
         </span>
         <span>
-          <kbd className="text-[#888] bg-[#222] px-1 rounded">M</kbd> Relais V2
+          <kbd className="text-[#888] bg-[#222] px-1 rounded">M</kbd> Relais ARC
         </span>
       </div>
 
@@ -930,6 +931,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
           <div className="shadow-lg shadow-blue-900/5">
             <BikeQueue
               bikeId={1}
+              troupeFilter="Appaloosa"
               bikeState={state.bike1}
               scouts={state.scouts}
               currentTime={currentTime}
@@ -951,14 +953,14 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
                       className="w-2 h-2 rounded-full animate-pulse"
                       style={{ backgroundColor: BIKE1_COLOR, opacity: rider1 ? 1 : 0.3 }}
                     />
-                    <span className="text-[10px] uppercase font-['Roboto_Mono'] text-[#ccc]">V1</span>
+                    <span className="text-[10px] uppercase font-['Roboto_Mono'] text-[#ccc]">APP</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div
                       className="w-2 h-2 rounded-full animate-pulse"
                       style={{ backgroundColor: BIKE2_COLOR, opacity: rider2 ? 1 : 0.3 }}
                     />
-                    <span className="text-[10px] uppercase font-['Roboto_Mono'] text-[#ccc]">V2</span>
+                    <span className="text-[10px] uppercase font-['Roboto_Mono'] text-[#ccc]">ARC</span>
                   </div>
                 </div>
               </div>
@@ -990,6 +992,7 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
           <div className="shadow-lg shadow-red-900/5">
             <BikeQueue
               bikeId={2}
+              troupeFilter="Archango"
               bikeState={state.bike2}
               scouts={state.scouts}
               currentTime={currentTime}
@@ -1043,8 +1046,8 @@ function OperatorDashboardInner({ onLogout }: { onLogout: () => void }) {
                     <RechartsTooltip
                       contentStyle={{ backgroundColor: "#111", border: "1px solid #333", fontSize: 11 }}
                     />
-                    <Line type="monotone" dataKey="bike1" stroke={BIKE1_COLOR} strokeWidth={2} dot={false} name="Vélo 1" />
-                    <Line type="monotone" dataKey="bike2" stroke={BIKE2_COLOR} strokeWidth={2} dot={false} name="Vélo 2" />
+                    <Line type="monotone" dataKey="bike1" stroke={BIKE1_COLOR} strokeWidth={2} dot={false} name="Appaloosa" />
+                    <Line type="monotone" dataKey="bike2" stroke={BIKE2_COLOR} strokeWidth={2} dot={false} name="Archango" />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
